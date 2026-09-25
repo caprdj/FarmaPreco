@@ -1,0 +1,5 @@
+﻿drogaria,filial,cadastro_cpf,url_produto,tipo_coleta
+Drogarias Pacheco,"Rua Conde de Bonfim, 580 — Tijuca",True,https://www.drogariaspacheco.com.br/puran-t4-112mcg-sanofi-aventis-30-comprimidos/p,automatica
+Droga Raia,"Rua Conde de Bonfim, 536 — Tijuca",True,https://www.drogaraia.com.br/puran-t4-112mcg-30-comprimidos.html,assistida
+Drogaria Venancio,"Rua Conde de Bonfim, 532 — Tijuca",False,https://www.drogariavenancio.com.br/puran-t4-112mcg-sanofi-aventis-30-comprimidos/p,automatica
+Drogasmil,"Praça Saenz Peña, 29 — Tijuca",False,https://www.drogasmil.com.br/puran-t4-112mcg-30-comprimidos/p,automatica

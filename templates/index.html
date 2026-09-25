@@ -1,0 +1,2865 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FarmaPreço — Comparador de Medicamentos na Tijuca</title>
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#094067">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FarmaPreço">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+    <link rel="icon" type="image/png" href="/static/icons/favicon.png">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .gradient-header {
+            background: linear-gradient(135deg, #094067 0%, #17709a 50%, #009688 100%);
+        }
+        .gold-border {
+            border: 2px solid #eab308;
+            background: linear-gradient(to right bottom, #fefce8, #fef08a15);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-16 md:pb-0">
+
+    <!-- Top Navigation / Header -->
+    <header class="gradient-header text-white shadow-lg sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center text-white text-xl shadow-inner">
+                    <i class="fa-solid fa-prescription-bottle-medical"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight flex items-center gap-2">
+                        FarmaPreço
+                        <span class="text-[10px] bg-emerald-400/30 text-emerald-100 font-semibold px-2 py-0.5 rounded-full border border-emerald-300/30">Tijuca • RJ</span>
+                    </h1>
+                    <p class="text-[11px] text-cyan-100">Comparador de farmácias e laboratórios (Tijuca)</p>
+                </div>
+            </div>
+
+            <!-- Header Quick Actions -->
+            <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                <button onclick="abrirModalApp()" class="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white font-bold px-3 py-2 rounded-xl text-xs border border-white/30 transition-all shadow-sm active:scale-95">
+                    <i class="fa-solid fa-mobile-screen-button text-emerald-300"></i>
+                    <span>App Celular</span>
+                </button>
+                <button onclick="coletarAutomatico()" id="btnColetarGeral" class="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3 py-2 rounded-xl text-xs shadow transition-all active:scale-95">
+                    <i class="fa-solid fa-rotate" id="iconColetaGeral"></i>
+                    <span class="hidden sm:inline">Atualizar Online</span>
+                </button>
+                <button onclick="abrirModalCadastro()" class="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white font-semibold px-3 py-2 rounded-xl text-xs border border-white/20 transition-all">
+                    <i class="fa-solid fa-plus-circle"></i>
+                    <span class="hidden sm:inline">Novo</span>
+                </button>
+                <a href="/api/relatorio/csv" class="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white font-medium px-2.5 py-2 rounded-xl text-xs border border-white/20 transition-all">
+                    <i class="fa-solid fa-file-csv"></i>
+                    <span class="hidden sm:inline">CSV</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex-1 w-full">
+
+        <!-- Bar: Seletor de Medicamento Ativo e CEP -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/90 p-4 mb-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            
+            <div class="flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-cyan-50 border border-cyan-100 flex items-center justify-center text-cyan-700 text-lg font-bold">
+                    <i class="fa-solid fa-pills"></i>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Medicamento Selecionado:</label>
+                    <div class="flex items-center gap-2">
+                        <select id="seletorMedicamento" onchange="trocarMedicamento()" class="text-sm font-bold text-slate-900 bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1 focus:ring-cyan-500 focus:border-cyan-500">
+                            {% for p in produtos %}
+                            <option value="{{ p.produto_id }}" {% if p.produto_id == produto.produto_id %}selected{% endif %}>
+                                {{ p.nome }} {{ p.dosagem }} ({{ p.fabricante }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <span id="badgeCategoriaAtiva" class="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200">
+                            {{ produto.categoria or 'Referência' }}
+                        </span>
+                    </div>
+                    <div class="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
+                        <span>Ativo: <strong id="infoPrincipioAtivo" class="text-slate-700">{{ produto.principio_ativo }}</strong></span>
+                        <span>•</span>
+                        <span id="infoApresentacao">{{ produto.apresentacao }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 text-xs text-slate-600 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200">
+                <i class="fa-solid fa-location-dot text-rose-500 text-sm"></i>
+                <div>
+                    <div><strong>CEP 20511-190</strong> — Tijuca, Rio de Janeiro</div>
+                    <div class="text-slate-500 text-[11px]">R. Conde de Bonfim / Pç. Saenz Peña</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs (5 Abas Fixas) -->
+        <div class="flex border-b border-slate-200 mb-5 space-x-1 sm:space-x-3 overflow-x-auto text-xs sm:text-sm font-medium">
+            <button onclick="trocarAba('cesta')" id="tab-cesta" class="tab-btn pb-3 px-3 text-cyan-700 border-b-2 border-cyan-600 font-bold flex items-center gap-1.5 whitespace-nowrap">
+                <i class="fa-solid fa-list-check text-emerald-600"></i> Lista completa
+            </button>
+            <button onclick="trocarAba('comparador')" id="tab-comparador" class="tab-btn pb-3 px-3 text-slate-500 hover:text-slate-800 border-b-2 border-transparent flex items-center gap-1.5 whitespace-nowrap">
+                <i class="fa-solid fa-chart-line text-cyan-600"></i> Comparador de Farmácias
+            </button>
+            <button onclick="trocarAba('raia')" id="tab-raia" class="tab-btn pb-3 px-3 text-slate-500 hover:text-slate-800 border-b-2 border-transparent flex items-center gap-1.5 whitespace-nowrap">
+                <i class="fa-solid fa-camera text-rose-500"></i> Droga Raia (Prints 3d)
+                <span id="tabBadgeRaia" class="hidden text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-rose-500 text-white">!</span>
+            </button>
+            <button onclick="trocarAba('cadastro')" id="tab-cadastro" class="tab-btn pb-3 px-3 text-slate-500 hover:text-slate-800 border-b-2 border-transparent flex items-center gap-1.5 whitespace-nowrap">
+                <i class="fa-solid fa-folder-plus text-cyan-600"></i> Gerenciar Medicamentos & Produtos
+            </button>
+            <button onclick="trocarAba('presencial')" id="tab-presencial" class="tab-btn pb-3 px-3 text-slate-500 hover:text-slate-800 border-b-2 border-transparent flex items-center gap-1.5 whitespace-nowrap">
+                <i class="fa-solid fa-receipt text-indigo-600"></i> Loja Física / Balcão
+            </button>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- ABA 1: LISTA COMPLETA & SELEÇÃO DE COMPRA -->
+        <!-- ========================================== -->
+        <section id="aba-cesta" class="space-y-5">
+            <!-- Header Banner -->
+            <div class="bg-gradient-to-r from-emerald-800 to-teal-700 text-white rounded-2xl p-5 shadow-sm">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider bg-white/20 text-emerald-100 px-2 py-0.5 rounded">
+                            Gestão de Gastos do Mês
+                        </span>
+                        <h2 class="text-xl font-bold mt-1">Lista Completa de Medicamentos & Produtos</h2>
+                        <p class="text-xs text-emerald-100 mt-1">
+                            Marque abaixo com o botão de seleção apenas os itens que você vai comprar neste mês. Os quadros e totais somam exclusivamente os itens selecionados.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <button onclick="marcarTodosCesta(true)" class="bg-white/20 hover:bg-white/30 text-white font-bold text-xs px-3 py-2 rounded-xl transition flex items-center gap-1 border border-white/20">
+                            <i class="fa-solid fa-check-double"></i> Marcar Todos
+                        </button>
+                        <button onclick="marcarTodosCesta(false)" class="bg-white/10 hover:bg-white/20 text-white font-medium text-xs px-3 py-2 rounded-xl transition flex items-center gap-1 border border-white/20">
+                            <i class="fa-regular fa-square"></i> Desmarcar Todos
+                        </button>
+                        <button onclick="carregarCestaMensal()" class="bg-white text-emerald-800 hover:bg-emerald-50 font-bold text-xs px-4 py-2 rounded-xl shadow transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-arrows-rotate"></i> Recalcular
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Banner de Alerta de Validade dos Prints (Regra de 3 Dias) -->
+            <div id="bannerAlertaRaiaCesta" class="hidden p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-900 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-200 text-amber-800 flex items-center justify-center text-lg font-bold">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-xs sm:text-sm">Prints da Droga Raia com Mais de 3 Dias</div>
+                        <div class="text-[11px] text-amber-800 mt-0.5" id="bannerAlertaRaiaTexto">
+                            Identificamos medicamentos com cotações expiradas na Droga Raia (> 3 dias). Envie novos prints para atualizar as ofertas.
+                        </div>
+                    </div>
+                </div>
+                <button onclick="trocarAba('raia')" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2 rounded-xl shadow whitespace-nowrap flex items-center gap-1.5 transition active:scale-95">
+                    <i class="fa-solid fa-camera"></i> Atualizar Prints na Droga Raia
+                </button>
+            </div>
+
+            <!-- Cards de Resumo Mensal -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                <div class="bg-white rounded-2xl p-4 border-2 border-emerald-500 shadow-sm bg-emerald-50/20">
+                    <span class="text-[11px] font-bold text-emerald-700 uppercase">Melhor Estratégia</span>
+                    <div class="text-xl font-black text-emerald-700 mt-1" id="cestaTotalOtimizado">R$ 0,00</div>
+                    <div class="text-[10px] text-slate-500 mt-0.5">Comprando no melhor preço</div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+                    <span class="text-[11px] font-bold text-slate-600 uppercase">Drogaria Venancio</span>
+                    <div class="text-lg font-black text-slate-900 mt-1" id="cestaTotalVenancio">R$ 0,00</div>
+                    <div class="text-[10px] text-slate-500 mt-0.5">R. Cde. Bonfim, 532</div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+                    <span class="text-[11px] font-bold text-slate-600 uppercase">Drogarias Pacheco</span>
+                    <div class="text-lg font-black text-slate-900 mt-1" id="cestaTotalPacheco">R$ 0,00</div>
+                    <div class="text-[10px] text-slate-500 mt-0.5">R. Cde. Bonfim, 580</div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+                    <span class="text-[11px] font-bold text-slate-600 uppercase">Drogasmil</span>
+                    <div class="text-lg font-black text-slate-900 mt-1" id="cestaTotalDrogasmil">R$ 0,00</div>
+                    <div class="text-[10px] text-slate-500 mt-0.5">Pç. Saenz Peña, 29</div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-rose-700 uppercase">Droga Raia</span>
+                        <span id="badgeCestaStatusRaia" class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600">Prints 3d</span>
+                    </div>
+                    <div class="text-lg font-black text-slate-900 mt-1" id="cestaTotalRaia">R$ 0,00</div>
+                    <div class="text-[10px] text-slate-500 mt-0.5">R. Cde. Bonfim, 536</div>
+                </div>
+            </div>
+
+            <!-- Tabela de Itens da Cesta -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-5 py-3.5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-cart-shopping text-emerald-600"></i>
+                        <h3 class="font-bold text-slate-800 text-xs sm:text-sm">Selecione os Itens que Vai Comprar no Mês</h3>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span id="badgeContadorSelecionados" class="text-xs bg-emerald-100 text-emerald-900 font-black px-3 py-1 rounded-full border border-emerald-300">0 selecionados</span>
+                        <span id="badgeTotalItensCesta" class="text-xs bg-slate-200 text-slate-700 font-semibold px-2.5 py-1 rounded-full">0 no total</span>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-600">
+                        <thead class="bg-slate-100/80 text-slate-700 uppercase text-[11px] font-bold border-b border-slate-200">
+                            <tr>
+                                <th class="px-3.5 py-3 text-center whitespace-nowrap bg-emerald-50/70 border-r border-slate-200">
+                                    <div class="flex items-center justify-center gap-1.5 cursor-pointer" onclick="toggleTodosCestaMaster()">
+                                        <input type="checkbox" id="checkMasterCesta" onchange="marcarTodosCesta(this.checked)" checked class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer">
+                                        <span class="text-[10px] font-black text-emerald-900">Comprar</span>
+                                    </div>
+                                </th>
+                                <th class="px-3.5 py-2.5">Medicamento / Produto</th>
+                                <th class="px-3 py-2.5 text-center">Consumo Mensal</th>
+                                <th class="px-3.5 py-2.5">Laboratório / Marca</th>
+                                <th class="px-3 py-2.5 text-right">Drogaria Venancio</th>
+                                <th class="px-3 py-2.5 text-right">Drogarias Pacheco</th>
+                                <th class="px-3 py-2.5 text-right">Drogasmil</th>
+                                <th class="px-3 py-2.5 text-right">Droga Raia (Prints 3d)</th>
+                                <th class="px-3 py-2.5 text-center">Melhor Opção</th>
+                                <th class="px-3 py-2.5 text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaCestaBody" class="divide-y divide-slate-100">
+                            <tr>
+                                <td colspan="10" class="text-center py-6 text-slate-400">Carregando lista completa de itens...</td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="bg-slate-50 font-bold border-t-2 border-slate-200 text-slate-800">
+                            <tr class="text-xs">
+                                <td colspan="4" class="px-3.5 py-3 font-extrabold text-slate-900 uppercase">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fa-solid fa-calculator text-emerald-600"></i>
+                                        <span>Total dos Produtos Selecionados:</span>
+                                    </div>
+                                </td>
+                                <td id="tfootTotalVenancio" class="px-3 py-3 text-right font-black text-slate-900">R$ 0,00</td>
+                                <td id="tfootTotalPacheco" class="px-3 py-3 text-right font-black text-slate-900">R$ 0,00</td>
+                                <td id="tfootTotalDrogasmil" class="px-3 py-3 text-right font-black text-slate-900">R$ 0,00</td>
+                                <td id="tfootTotalRaia" class="px-3 py-3 text-right font-black text-slate-900">R$ 0,00</td>
+                                <td id="tfootTotalOtimizado" class="px-3 py-3 text-center font-black text-emerald-700 bg-emerald-100/70 rounded border border-emerald-200">R$ 0,00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Card de Auditoria & Conferência do Lançamento Mensal -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+                <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+                    <div class="w-9 h-9 rounded-xl bg-teal-100 text-teal-800 flex items-center justify-center font-bold text-base">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-extrabold text-slate-900 text-sm">Conferência do Lançamento Mensal dos Medicamentos</h4>
+                        <p class="text-xs text-slate-500">Validação das quantidades prescritas e dosagens mensais registradas</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+                    <!-- 1. Sertralina -->
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                        <div class="font-bold text-slate-900 flex items-center justify-between">
+                            <span>Sertralina 50mg</span>
+                            <span class="bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded text-[10px]">1 cx / mês</span>
+                        </div>
+                        <div class="text-[11px] text-slate-500 mt-1">30 comp • EMS / Medley • Uso contínuo diário</div>
+                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 12,99 (Venancio - EMS)</div>
+                    </div>
+
+                    <!-- 2. Bup -->
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                        <div class="font-bold text-slate-900 flex items-center justify-between">
+                            <span>Bup XL / XR 300mg</span>
+                            <span class="bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded text-[10px]">1 cx / mês</span>
+                        </div>
+                        <div class="text-[11px] text-slate-500 mt-1">30 comp • Eurofarma • Liberação prolongada</div>
+                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 96,53 (Venancio - Eurofarma)</div>
+                    </div>
+
+                    <!-- 3. Kalist -->
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                        <div class="font-bold text-slate-900 flex items-center justify-between">
+                            <span>Kalist / Dienogeste 2mg</span>
+                            <span class="bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded text-[10px]">1 cx / mês</span>
+                        </div>
+                        <div class="text-[11px] text-slate-500 mt-1">28/30 comp • EMS (genérico) ou Aché (Kalist)</div>
+                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 36,88 (Venancio - EMS)</div>
+                    </div>
+
+                    <!-- 4. Quetiapina -->
+                    <div class="p-3 rounded-xl bg-amber-50/70 border border-amber-200">
+                        <div class="font-bold text-amber-950 flex items-center justify-between">
+                            <span>Quetiapina 25mg</span>
+                            <span class="bg-amber-200 text-amber-900 px-2 py-0.5 rounded text-[10px] font-black">3 cx / mês</span>
+                        </div>
+                        <div class="text-[11px] text-amber-800 mt-1">30 comp cada (90 comp/mês) • Biolab / Eurofarma</div>
+                        <div class="text-[11px] font-bold text-emerald-800 mt-1">Total: R$ 43,50 (3x R$ 14,50 na Venancio)</div>
+                    </div>
+
+                    <!-- 5. Rosuvastatina -->
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                        <div class="font-bold text-slate-900 flex items-center justify-between">
+                            <span>Rosuvastatina 5mg</span>
+                            <span class="bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded text-[10px]">1 cx / mês</span>
+                        </div>
+                        <div class="text-[11px] text-slate-500 mt-1">30 comp • EMS / Medley • Uso contínuo</div>
+                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 24,00 (Drogasmil - EMS)</div>
+                    </div>
+
+                    <!-- 6. Dipirona 1g -->
+                    <div class="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200">
+                        <div class="font-bold text-slate-900 flex items-center justify-between">
+                            <span>Dipirona 1g (Novalgina / Lisador)</span>
+                            <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">1 cx / mês</span>
+                        </div>
+                        <div class="text-[11px] text-emerald-900 mt-1">10 comp • Restrito: Novalgina (Sanofi) ou Lisador (Hypera)</div>
+                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 18,70 (Drogasmil - Novalgina Sanofi)</div>
+                    </div>
+
+                    <!-- 7. Levotiroxina -->
+                    <div class="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200">
+                        <div class="font-bold text-slate-900 flex items-center justify-between">
+                            <span>Levotiroxina (Puran T4 Sanofi)</span>
+                            <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">1 cx / mês</span>
+                        </div>
+                        <div class="text-[11px] text-emerald-900 mt-1">112mcg 30 comp • Restrito: Sanofi Aventis (Referência)</div>
+                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 27,80 (Drogasmil) / R$ 29,18 (Venancio)</div>
+                    </div>
+
+                    <!-- 8. Omega 3 Omegafor Plus Vitafor -->
+                    <div class="p-3 rounded-xl bg-purple-50/70 border border-purple-200">
+                        <div class="font-bold text-purple-950 flex items-center justify-between">
+                            <span>Ômega 3 (Omegafor Plus Vitafor)</span>
+                            <span class="bg-purple-200 text-purple-900 px-2 py-0.5 rounded text-[10px] font-bold">1 fr / mês</span>
+                        </div>
+                        <div class="text-[11px] text-purple-900 mt-1">Exclusivo: Omegafor Plus 60 cáps • 2 comp/dia (60 cáps/mês)</div>
+                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 89,90 (Venancio - Vitafor)</div>
+                    </div>
+
+                    <!-- 9. Vitamina D 7000 -->
+                    <div class="p-3 rounded-xl bg-amber-50/60 border border-amber-200">
+                        <div class="font-bold text-slate-900 flex items-center justify-between">
+                            <span>Vitamina D 7000 UI</span>
+                            <span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">1 cx / mês</span>
+                        </div>
+                        <div class="text-[11px] text-slate-500 mt-1">4 comp • Posologia: 1 comprimido por semana (4x/mês)</div>
+                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 23,90 (Venancio - Sanofi/EMS)</div>
+                    </div>
+
+                    <!-- 10. Desodorante Dove Invisible Care -->
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                        <div class="font-bold text-slate-900 flex items-center justify-between">
+                            <span>Desodorante Dove Invisible Care</span>
+                            <span class="bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded text-[10px]">1 un / mês</span>
+                        </div>
+                        <div class="text-[11px] text-slate-500 mt-1">Aerosol 150ml • Antimanchas brancas e amarelas • Unilever</div>
+                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 17,99 (Drogasmil) / R$ 18,90 (Venancio)</div>
+                    </div>
+
+                    <!-- 11. Shampoo Elseve Collagen Lifter -->
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                        <div class="font-bold text-slate-900 flex items-center justify-between">
+                            <span>Shampoo Elseve Collagen Lifter</span>
+                            <span class="bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded text-[10px]">1 un / mês</span>
+                        </div>
+                        <div class="text-[11px] text-slate-500 mt-1">Frasco 400ml • Encorpador e volumizador capilar • L'Oréal</div>
+                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 27,90 (Venancio - L'Oréal Paris)</div>
+                    </div>
+
+                    <!-- 12. Condicionador Elseve Collagen Lifter -->
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                        <div class="font-bold text-slate-900 flex items-center justify-between">
+                            <span>Condicionador Elseve Collagen Lifter</span>
+                            <span class="bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded text-[10px]">1 un / mês</span>
+                        </div>
+                        <div class="text-[11px] text-slate-500 mt-1">Frasco 400ml • Encorpador capilar • L'Oréal Paris</div>
+                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 29,90 (Venancio - L'Oréal Paris)</div>
+                    </div>
+
+                    <!-- 13. Protetor Solar Isdin Fusion Water -->
+                    <div class="p-3 rounded-xl bg-rose-50/60 border border-rose-200">
+                        <div class="font-bold text-slate-900 flex items-center justify-between">
+                            <span>Protetor Isdin Fusion Water (Clara)</span>
+                            <span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded text-[10px] font-bold">1 un / mês</span>
+                        </div>
+                        <div class="text-[11px] text-slate-600 mt-1">FPS 60 50ml • Cor Clara • Textura ultraleve base aquosa • Isdin</div>
+                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 94,90 (Venancio / Raia)</div>
+                    </div>
+
+                    <!-- 14. Protetor Solar Episol Color Tom 2 Claro -->
+                    <div class="p-3 rounded-xl bg-rose-50/60 border border-rose-200">
+                        <div class="font-bold text-slate-900 flex items-center justify-between">
+                            <span>Episol Color Tom 2 Claro</span>
+                            <span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded text-[10px] font-bold">1 un / mês</span>
+                        </div>
+                        <div class="text-[11px] text-slate-600 mt-1">FPS 70 40g • Tom 2 Claro • Efeito matte antioleosidade • Mantecorp</div>
+                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 84,90 (Venancio)</div>
+                    </div>
+
+                    <!-- 15. Shampoo Fortalecedor Pielus Forte -->
+                    <div class="p-3 rounded-xl bg-indigo-50/60 border border-indigo-200">
+                        <div class="font-bold text-slate-900 flex items-center justify-between">
+                            <span>Shampoo Pielus Forte</span>
+                            <span class="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded text-[10px] font-bold">1 un / mês</span>
+                        </div>
+                        <div class="text-[11px] text-slate-600 mt-1">400ml • Biotina + Complexo Antiqueda H-Reverse • Mantecorp</div>
+                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 114,90 (Venancio)</div>
+                    </div>
+
+                    <!-- 16. Solução Capilar Pielus Forte -->
+                    <div class="p-3 rounded-xl bg-indigo-50/60 border border-indigo-200">
+                        <div class="font-bold text-slate-900 flex items-center justify-between">
+                            <span>Solução Capilar Pielus Forte</span>
+                            <span class="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded text-[10px] font-bold">1 un / mês</span>
+                        </div>
+                        <div class="text-[11px] text-slate-600 mt-1">120ml • Loção Antiqueda com aplicador • Mantecorp</div>
+                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 139,90 (Venancio)</div>
+                    </div>
+
+                    <!-- 17. Darrow Actine Renov -->
+                    <div class="p-3 rounded-xl bg-teal-50/60 border border-teal-200">
+                        <div class="font-bold text-slate-900 flex items-center justify-between">
+                            <span>Darrow Actine Renov</span>
+                            <span class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded text-[10px] font-bold">1 un / mês</span>
+                        </div>
+                        <div class="text-[11px] text-slate-600 mt-1">30ml • Sérum Renovador Facial Antiacne • Darrow</div>
+                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 79,90 (Venancio)</div>
+                    </div>
+
+                    <!-- 18. Cera Pink Granado -->
+                    <div class="p-3 rounded-xl bg-pink-50/70 border border-pink-200">
+                        <div class="font-bold text-slate-900 flex items-center justify-between">
+                            <span>Cera Pink Unhas Granado</span>
+                            <span class="bg-pink-100 text-pink-800 px-2 py-0.5 rounded text-[10px] font-bold">1 un / mês</span>
+                        </div>
+                        <div class="text-[11px] text-slate-600 mt-1">7g • Nutritiva para Unhas e Cutículas • Granado Pink</div>
+                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 34,90 (Venancio)</div>
+                    </div>
+
+                    <!-- 19. NIVEA Creme Hidratante Lata -->
+                    <div class="p-3 rounded-xl bg-blue-50/60 border border-blue-200">
+                        <div class="font-bold text-slate-900 flex items-center justify-between">
+                            <span>Nivea Creme Lata Azul</span>
+                            <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-[10px] font-bold">1 un / mês</span>
+                        </div>
+                        <div class="text-[11px] text-slate-600 mt-1">56g • Hidratação Intensiva Tradicional • Nivea</div>
+                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 21,90 (Venancio)</div>
+                    </div>
+
+                    <!-- 20. Gel De Limpeza Facial Effaclar Concentrado -->
+                    <div class="p-3 rounded-xl bg-sky-50/60 border border-sky-200">
+                        <div class="font-bold text-slate-900 flex items-center justify-between">
+                            <span>Effaclar Gel Concentrado</span>
+                            <span class="bg-sky-100 text-sky-800 px-2 py-0.5 rounded text-[10px] font-bold">1 un / mês</span>
+                        </div>
+                        <div class="text-[11px] text-slate-600 mt-1">150g • Ácido Salicílico + Zinco • La Roche-Posay</div>
+                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 54,90 (Venancio)</div>
+                    </div>
+
+                    <!-- 21. Sabonete Líquido Íntimo -->
+                    <div class="p-3 rounded-xl bg-rose-50/60 border border-rose-200">
+                        <div class="font-bold text-slate-900 flex items-center justify-between">
+                            <span>Sabonete Líquido Íntimo</span>
+                            <span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded text-[10px] font-bold">1 un / mês</span>
+                        </div>
+                        <div class="text-[11px] text-slate-600 mt-1">200ml • Marcas permitidas: Nivea, Dermacyd, Intimus</div>
+                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 19,90 (Venancio - Dermacyd/Nivea)</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- ABA 2: COMPARADOR DE FARMÁCIAS            -->
+        <!-- ========================================== -->
+        <section id="aba-comparador" class="hidden space-y-5">
+
+            <!-- Controles e Filtros -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <!-- Quantidade de caixas -->
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Caixas Desejadas:</label>
+                            <div class="inline-flex rounded-xl shadow-sm bg-slate-100 p-1 border border-slate-200">
+                                <button type="button" onclick="setQtd(1)" class="btn-qtd px-3 py-1 rounded-lg text-xs font-semibold bg-white text-slate-800 shadow-sm" data-qtd="1">1 cx</button>
+                                <button type="button" onclick="setQtd(2)" class="btn-qtd px-3 py-1 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900" data-qtd="2">2 cx</button>
+                                <button type="button" onclick="setQtd(3)" class="btn-qtd px-3 py-1 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900" data-qtd="3">3 cx</button>
+                                <button type="button" onclick="setQtd(4)" class="btn-qtd px-3 py-1 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900" data-qtd="4">4 cx (Promoção)</button>
+                                <div class="flex items-center pl-2 pr-1">
+                                    <input type="number" id="inputQtd" min="1" max="100" value="1" onchange="atualizarComparacao()" class="w-12 text-center bg-white border border-slate-200 rounded-lg py-1 text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-cyan-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Filtro Modalidade -->
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Modalidade:</label>
+                            <select id="filtroModalidade" onchange="atualizarComparacao()" class="bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl px-3 py-1.5">
+                                <option value="todas">Todas as modalidades</option>
+                                <option value="retirada">Online — Retirada na filial</option>
+                                <option value="física">Loja física / Balcão</option>
+                                <option value="entrega">Online — Entrega</option>
+                            </select>
+                        </div>
+
+                        <!-- Checkbox Estoque Confirmado -->
+                        <div class="flex items-center pt-4">
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="checkConfirmado" onchange="atualizarComparacao()" class="sr-only peer">
+                                <div class="relative w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-emerald-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all"></div>
+                                <span class="ms-2 text-xs font-medium text-slate-700">Apenas estoque confirmado</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Botão de comparação por laboratórios com atalho -->
+                    <div>
+                        <button onclick="trocarAba('laboratorios')" class="w-full lg:w-auto flex items-center justify-center gap-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold px-3.5 py-2 rounded-xl border border-purple-200 transition">
+                            <i class="fa-solid fa-flask-vial"></i> Ver Genéricos deste Medicamento
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Destaque: Melhor Opção -->
+            <div id="cardMelhorOpcao" class="hidden rounded-2xl p-5 shadow-sm transition-all gold-border">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="space-y-1">
+                        <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-white shadow-sm">
+                            <i class="fa-solid fa-crown"></i>
+                            MELHOR PREÇO PARA <span id="destaqueQtdCaixas">1 CAIXA</span>
+                        </div>
+                        <h2 class="text-xl font-black text-slate-900 flex items-center gap-2 mt-1">
+                            <span id="destaqueDrogaria">—</span>
+                            <span id="destaqueBadgeCondicao" class="text-xs font-semibold px-2 py-0.5 rounded-md bg-cyan-100 text-cyan-800">Preço Comum</span>
+                        </h2>
+                        <p class="text-xs text-slate-600 flex items-center gap-1.5">
+                            <i class="fa-solid fa-location-dot text-slate-400"></i>
+                            <span id="destaqueFilial">—</span> • <span id="destaqueModalidade">—</span>
+                        </p>
+                    </div>
+
+                    <div class="text-left md:text-right bg-white/80 p-3.5 rounded-xl border border-amber-200/60 shadow-inner">
+                        <div class="text-[11px] text-slate-500 font-medium">Total Estimado:</div>
+                        <div class="text-2xl font-black text-emerald-600" id="destaqueTotalEstimado">R$ 0,00</div>
+                        <div class="text-xs text-slate-600 mt-0.5">
+                            <strong id="destaqueCustoCaixa">R$ 0,00</strong> por caixa • Estoque: <span id="destaqueEstoque" class="font-semibold">—</span>
+                        </div>
+                        <div id="destaqueEconomiaBox" class="mt-1 text-[11px] font-bold text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded inline-block">
+                            Economia de até <span id="destaqueEconomia">R$ 0,00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela Comparativa de Ofertas -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <h3 class="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-ranking-star text-amber-500"></i>
+                        Ranking de Farmácias para o Medicamento
+                    </h3>
+                    <span id="totalOfertasBadge" class="text-xs bg-slate-200 text-slate-700 font-semibold px-2.5 py-0.5 rounded-full">0 ofertas</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-600">
+                        <thead class="bg-slate-100/70 text-slate-700 uppercase text-[11px] font-bold border-b border-slate-200">
+                            <tr>
+                                <th scope="col" class="px-4 py-2.5 text-center w-12">Pos.</th>
+                                <th scope="col" class="px-4 py-2.5">Farmácia / Filial</th>
+                                <th scope="col" class="px-4 py-2.5">Laboratório / Marca</th>
+                                <th scope="col" class="px-4 py-2.5">Modalidade</th>
+                                <th scope="col" class="px-4 py-2.5">Condição</th>
+                                <th scope="col" class="px-4 py-2.5 text-right">R$ / Caixa</th>
+                                <th scope="col" class="px-4 py-2.5 text-right">Total Estimado</th>
+                                <th scope="col" class="px-4 py-2.5 text-center">Estoque</th>
+                                <th scope="col" class="px-4 py-2.5 text-center">Data</th>
+                                <th scope="col" class="px-4 py-2.5 text-center">Link</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaOfertasBody" class="divide-y divide-slate-100">
+                            <tr>
+                                <td colspan="10" class="px-4 py-6 text-center text-slate-400">
+                                    <i class="fa-solid fa-spinner fa-spin text-lg mb-1.5"></i>
+                                    <p>Carregando ofertas de farmácias...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- PAINEL INTEGRADO: COMPARATIVO DE LABORATÓRIOS -->
+            <!-- ========================================== -->
+            <div class="bg-white rounded-2xl shadow-sm border border-purple-200 overflow-hidden">
+                <div class="px-5 py-3.5 border-b border-purple-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-gradient-to-r from-purple-50/70 to-indigo-50/40">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center text-sm font-bold shadow-sm">
+                            <i class="fa-solid fa-flask-vial"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-900 text-xs sm:text-sm flex items-center gap-1.5">
+                                Comparativo entre Laboratórios & Genéricos para <span id="labIntegradoNomeMedicamento" class="text-purple-700 font-extrabold">—</span>
+                            </h3>
+                            <p class="text-[11px] text-slate-500">Preços concorrentes entre o produto de Marca (Referência), Genéricos e Similares</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="badgeIntegradoTotalLabs" class="text-xs bg-purple-100 text-purple-800 font-bold px-2.5 py-0.5 rounded-full">Carregando...</span>
+                    </div>
+                </div>
+
+                <!-- Banner Rápido de Economia por Laboratório -->
+                <div id="bannerIntegradoLab" class="hidden mx-5 my-3.5 p-3 rounded-xl bg-purple-50/80 border border-purple-200/80 flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-tags text-purple-600 text-base"></i>
+                        <span>
+                            Trocar de laboratório gera economia de até <strong id="labIntegradoEconomiaPct" class="text-emerald-700 text-sm font-black">0%</strong> 
+                            (<strong id="labIntegradoDiferencaReais" class="text-emerald-700">R$ 0,00</strong> / cx).
+                            Mais em conta: <span id="labIntegradoNomeMaisBarato" class="font-bold text-slate-800">—</span>.
+                        </span>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-600">
+                        <thead class="bg-slate-100/70 text-slate-700 uppercase text-[11px] font-bold border-b border-slate-200">
+                            <tr>
+                                <th scope="col" class="px-4 py-2.5">Laboratório / Marca</th>
+                                <th scope="col" class="px-4 py-2.5">Produto Comercial</th>
+                                <th scope="col" class="px-4 py-2.5 text-center">Tipo</th>
+                                <th scope="col" class="px-4 py-2.5 text-right">Preço / Caixa</th>
+                                <th scope="col" class="px-4 py-2.5 text-right">Comparativo / Economia</th>
+                                <th scope="col" class="px-4 py-2.5 text-center">Status</th>
+                                <th scope="col" class="px-4 py-2.5 text-center">Link</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaLaboratoriosIntegradoBody" class="divide-y divide-slate-100">
+                            <tr>
+                                <td colspan="7" class="px-4 py-6 text-center text-slate-400">
+                                    <i class="fa-solid fa-spinner fa-spin text-lg mb-1.5"></i>
+                                    <p>Buscando preços de diferentes laboratórios...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- ABA 3: COMPARADOR DE LABORATÓRIOS         -->
+        <!-- ========================================== -->
+        <section id="aba-laboratorios" class="hidden space-y-5">
+            <!-- Barra de busca do princípio ativo -->
+            <div class="bg-gradient-to-r from-purple-900 to-indigo-800 text-white rounded-2xl p-5 shadow-sm">
+                <div class="max-w-3xl">
+                    <span class="text-[11px] font-bold uppercase tracking-wider bg-white/20 text-purple-200 px-2 py-0.5 rounded">
+                        Economia Inteligente
+                    </span>
+                    <h2 class="text-xl font-bold mt-1">Comparativo entre Laboratórios & Genéricos</h2>
+                    <p class="text-xs text-purple-200 mt-1">
+                        Compare o medicamento de marca (Referência) com os genéricos e similares produzidos pelos principais laboratórios farmacêuticos (EMS, Medley, Eurofarma, Neo Química, Merck, Sanofi, Aché, etc.).
+                    </p>
+
+                    <div class="mt-4 flex flex-col sm:flex-row gap-2">
+                        <input type="text" id="inputBuscaLab" placeholder="Ex: Levotiroxina 112, Losartana 50mg, Metformina 850mg" class="flex-1 bg-white text-slate-900 text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-xl border-0 focus:ring-2 focus:ring-cyan-400">
+                        <button onclick="buscarLaboratorios()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow transition active:scale-95 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-magnifying-glass"></i> Comparar Laboratórios
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Destaque de Economia com Genérico -->
+            <div id="cardDestaqueLab" class="hidden bg-white rounded-2xl p-5 border border-purple-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl font-bold">
+                        <i class="fa-solid fa-percent"></i>
+                    </div>
+                    <div>
+                        <div class="text-[11px] font-bold text-purple-700 uppercase">Potencial de Economia Máxima</div>
+                        <div class="text-lg font-black text-slate-900">
+                            Economize até <span id="labEconomiaPct" class="text-emerald-600 text-2xl font-black">0%</span> trocando de laboratório!
+                        </div>
+                        <div class="text-xs text-slate-600">
+                            Mais barato: <strong id="labNomeMaisBarato" class="text-emerald-700">—</strong> (R$ <span id="labPrecoMaisBarato">0,00</span>) vs Mais caro: <strong id="labNomeMaisCaro">—</strong> (R$ <span id="labPrecoMaisCaro">0,00</span>)
+                        </div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs text-slate-500">Diferença de até</span>
+                    <div id="labDiferencaReais" class="text-2xl font-black text-purple-900">R$ 0,00</div>
+                    <span class="text-[10px] text-slate-400">por caixa</span>
+                </div>
+            </div>
+
+            <!-- Tabela dos Laboratórios -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                    <h3 class="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-industry text-purple-600"></i>
+                        Preços por Laboratório Farmacêutico
+                    </h3>
+                    <span id="badgeTotalLabs" class="text-xs bg-purple-100 text-purple-800 font-semibold px-2.5 py-0.5 rounded-full">0 marcas</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-600">
+                        <thead class="bg-slate-100/70 text-slate-700 uppercase text-[11px] font-bold border-b border-slate-200">
+                            <tr>
+                                <th class="px-4 py-2.5">Laboratório / Marca</th>
+                                <th class="px-4 py-2.5">Nome do Produto</th>
+                                <th class="px-4 py-2.5 text-center">Tipo</th>
+                                <th class="px-4 py-2.5 text-right">Preço</th>
+                                <th class="px-4 py-2.5 text-right">Economia</th>
+                                <th class="px-4 py-2.5 text-center">Status</th>
+                                <th class="px-4 py-2.5 text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaLaboratoriosBody" class="divide-y divide-slate-100">
+                            <tr>
+                                <td colspan="7" class="text-center py-8 text-slate-400">
+                                    Selecione um medicamento ou digite um princípio ativo acima para ver o comparativo de laboratórios.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- ABA 3: CADASTRO / GERENCIAR MEDICAMENTOS & PRODUTOS -->
+        <!-- ========================================== -->
+        <section id="aba-cadastro" class="hidden space-y-5">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                <!-- Formulário de Cadastro -->
+                <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center justify-between mb-5 pb-4 border-b border-slate-100 flex-wrap gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-plus-circle"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-base font-bold text-slate-900" id="tituloFormCadastro">Cadastrar Novo Item</h2>
+                                <p class="text-xs text-slate-500">Adicione medicamentos contínuos ou produtos em geral para monitorar preços na Tijuca</p>
+                            </div>
+                        </div>
+
+                        <!-- Seletor de Tipo (Medicamento vs Produto Geral) -->
+                        <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-bold">
+                            <button type="button" onclick="setTipoCadastro('medicamento')" id="btnTipoMed" class="px-3 py-1.5 rounded-lg bg-white text-slate-900 shadow-sm transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-pills text-cyan-600"></i> Medicamento
+                            </button>
+                            <button type="button" onclick="setTipoCadastro('produto')" id="btnTipoProd" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-pump-soap text-rose-500"></i> Produto Geral (Cosmético/Higiene)
+                            </button>
+                        </div>
+                    </div>
+
+                    <form id="formNovoMedicamento" onsubmit="salvarNovoMedicamento(event)" class="space-y-4">
+                        <input type="hidden" id="cadTipoItem" value="medicamento">
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1" id="lblCadNome">Nome do Medicamento:</label>
+                                <input type="text" id="cadNome" required placeholder="Ex: Losartana Potássica ou Shampoo Pielus Forte" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-cyan-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1" id="lblCadAtivo">Princípio Ativo:</label>
+                                <input type="text" id="cadAtivo" placeholder="Ex: Losartana potássica ou Biotina" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-cyan-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1" id="lblCadDosagem">Dosagem / Conteúdo:</label>
+                                <input type="text" id="cadDosagem" required placeholder="Ex: 50mg, 400ml, 150g, 7g" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-cyan-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Apresentação / Embalagem:</label>
+                                <input type="text" id="cadApresentacao" required placeholder="Ex: 30 comp, Frasco 400ml, Pote 7g" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-cyan-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1" id="lblCadFabricante">Laboratório / Marca:</label>
+                                <input type="text" id="cadFabricante" required placeholder="Ex: Medley, EMS, Granado, Nivea, Isdin" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-cyan-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Classificação / Categoria:</label>
+                                <select id="cadCategoria" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold focus:ring-2 focus:ring-cyan-500">
+                                    <option value="Genérico">Genérico</option>
+                                    <option value="Referência">Referência (Marca Original)</option>
+                                    <option value="Similar">Similar</option>
+                                    <option value="Dermocosméticos">Dermocosméticos</option>
+                                    <option value="Cuidados Pessoais">Cuidados Pessoais</option>
+                                    <option value="Higiene & Cuidados Pessoais">Higiene & Cuidados Pessoais</option>
+                                    <option value="Cuidados Capilares">Cuidados Capilares</option>
+                                    <option value="Suplemento / Referência">Suplemento / Vitaminas</option>
+                                    <option value="Outros">Outros</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Consumo Mensal (Qtd/Mês):</label>
+                                <input type="number" id="cadQtdMensal" value="1" min="1" max="100" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-cyan-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Código EAN / Barras (opcional):</label>
+                                <input type="text" id="cadEan" placeholder="Ex: 7896422506250" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-cyan-500">
+                            </div>
+                        </div>
+
+                        <!-- URLs Opcionais -->
+                        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2.5">
+                            <span class="block text-[11px] font-bold text-slate-700">Links Diretos das Farmácias (Opcional - para busca ultra-rápida):</span>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                <input type="url" id="cadUrlPacheco" placeholder="Link Drogarias Pacheco" class="border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white text-[11px]">
+                                <input type="url" id="cadUrlVenancio" placeholder="Link Drogaria Venancio" class="border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white text-[11px]">
+                                <input type="url" id="cadUrlDrogasmil" placeholder="Link Drogasmil" class="border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white text-[11px]">
+                                <input type="url" id="cadUrlRaia" placeholder="Link Droga Raia" class="border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white text-[11px]">
+                            </div>
+                        </div>
+
+                        <button type="submit" id="btnSalvarProd" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs sm:text-sm shadow transition flex items-center justify-center gap-2 active:scale-98">
+                            <i class="fa-solid fa-floppy-disk"></i> Salvar e Monitorar Preços
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Lista de Medicamentos & Produtos Cadastrados -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-list-check text-cyan-600"></i>
+                                Itens Cadastrados
+                            </h3>
+                            <span id="badgeTotalCadastradosCount" class="text-xs bg-slate-100 text-slate-700 font-bold px-2 py-0.5 rounded-full">0 itens</span>
+                        </div>
+                        <div id="listaMedicamentosCadastrados" class="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
+                            <!-- Preenchido via JS com botões Editar e Excluir -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Modal de Edição de Medicamento / Produto -->
+        <div id="modalEditarProduto" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[92vh] overflow-y-auto">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-pen-to-square text-base"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-extrabold text-slate-900 text-base">Editar Medicamento / Produto</h4>
+                            <p class="text-xs text-slate-500">Altere dosagens, quantidades mensais prescritas ou informações do item</p>
+                        </div>
+                    </div>
+                    <button onclick="fecharModalEdicao()" class="text-slate-400 hover:text-slate-700 w-8 h-8 rounded-lg flex items-center justify-center text-lg hover:bg-slate-100 transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <form id="formEditarProduto" onsubmit="salvarEdicaoProduto(event)" class="mt-4 space-y-4">
+                    <input type="hidden" id="editProdutoId" value="">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Nome do Item:</label>
+                            <input type="text" id="editNome" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Princípio Ativo / Fórmula:</label>
+                            <input type="text" id="editAtivo" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-amber-500">
+                        </div>
+                    </div>
+
+                    <!-- Destaque para Dosagem e Consumo Mensal -->
+                    <div class="p-3.5 bg-amber-50/70 border border-amber-200 rounded-2xl grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-extrabold text-amber-950 mb-1 flex items-center gap-1">
+                                <i class="fa-solid fa-scale-balanced text-amber-600"></i> Dosagem / Concentração / Volume:
+                            </label>
+                            <input type="text" id="editDosagem" required placeholder="Ex: 50mg, 300mg, 400ml, 150g" class="w-full border border-amber-300 rounded-xl px-3 py-2 text-xs font-black text-amber-950 bg-white focus:ring-2 focus:ring-amber-500">
+                            <span class="text-[10px] text-amber-800">Altere a dosagem prescrita (ex: 50mg, 100mg, 400ml)</span>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-extrabold text-amber-950 mb-1 flex items-center gap-1">
+                                <i class="fa-solid fa-boxes-stacked text-amber-600"></i> Quantidade Mensal (Caixas/Unidades):
+                            </label>
+                            <input type="number" id="editQuantidadeMensal" required min="1" max="100" class="w-full border border-amber-300 rounded-xl px-3 py-2 text-xs font-black text-amber-950 bg-white focus:ring-2 focus:ring-amber-500">
+                            <span class="text-[10px] text-amber-800">Quantas caixas ou frascos você usa por mês</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Apresentação:</label>
+                            <input type="text" id="editApresentacao" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Laboratório / Marca:</label>
+                            <input type="text" id="editFabricante" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Categoria:</label>
+                            <select id="editCategoria" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold focus:ring-2 focus:ring-amber-500">
+                                <option value="Genérico">Genérico</option>
+                                <option value="Referência">Referência</option>
+                                <option value="Similar">Similar</option>
+                                <option value="Dermocosméticos">Dermocosméticos</option>
+                                <option value="Cuidados Pessoais">Cuidados Pessoais</option>
+                                <option value="Higiene & Cuidados Pessoais">Higiene & Cuidados Pessoais</option>
+                                <option value="Cuidados Capilares">Cuidados Capilares</option>
+                                <option value="Suplemento / Referência">Suplemento / Vitaminas</option>
+                                <option value="Outros">Outros</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Código EAN (Barras):</label>
+                        <input type="text" id="editEan" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-amber-500">
+                    </div>
+
+                    <!-- Links de Farmácias -->
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
+                        <span class="block text-[11px] font-bold text-slate-700">Links de Busca Rápida:</span>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                            <input type="url" id="editUrlPacheco" placeholder="Link Pacheco" class="border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white text-[11px]">
+                            <input type="url" id="editUrlVenancio" placeholder="Link Venancio" class="border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white text-[11px]">
+                            <input type="url" id="editUrlDrogasmil" placeholder="Link Drogasmil" class="border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white text-[11px]">
+                            <input type="url" id="editUrlRaia" placeholder="Link Droga Raia" class="border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white text-[11px]">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                        <button type="button" onclick="fecharModalEdicao()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition">
+                            Cancelar
+                        </button>
+                        <button type="submit" id="btnSalvarEdicao" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white shadow transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-check"></i> Salvar Alterações
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- ABA 4: DROGA RAIA (PRINTS & VALIDADE 3 DIAS) -->
+        <!-- ========================================== -->
+        <section id="aba-raia" class="hidden space-y-6">
+            <!-- Header explicativo da política de 3 dias -->
+            <div class="bg-gradient-to-r from-rose-900 via-rose-800 to-red-700 text-white rounded-2xl p-5 shadow-sm">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="max-w-2xl">
+                        <span class="text-[11px] font-bold uppercase tracking-wider bg-white/20 text-rose-100 px-2 py-0.5 rounded">
+                            Droga Raia • Validade Rigorosa de 3 Dias
+                        </span>
+                        <h2 class="text-xl font-bold mt-1">Upload de Prints da Tela & OCR de Preços</h2>
+                        <p class="text-xs text-rose-100 mt-1">
+                            Envie prints de tela com os nomes e valores dos medicamentos. O FarmaPreço extrai os preços automaticamente via OCR nativo. As cotações da Droga Raia <strong>expiram após 3 dias (72h)</strong> da data do upload, sendo necessário enviar novos prints para renovar.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <a id="linkRaiaDinamico" href="https://www.drogaraia.com.br/" target="_blank" class="bg-white text-rose-800 hover:bg-rose-50 font-bold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center gap-1.5 whitespace-nowrap">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Site Droga Raia
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid: Esquerda Upload e Confirmação OCR, Direita Painel de Validade -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                <!-- Coluna Esquerda: Upload do Print e Confirmação OCR (5 cols) -->
+                <div class="lg:col-span-5 space-y-5">
+                    
+                    <!-- Card de Upload / Dropzone -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                        <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-cloud-arrow-up text-rose-600"></i>
+                                Enviar Print da Tela
+                            </h3>
+                            <span class="text-[10px] bg-rose-50 text-rose-700 font-bold px-2 py-0.5 rounded-full border border-rose-200">
+                                OCR Inteligente
+                            </span>
+                        </div>
+
+                        <!-- Seleção do Medicamento -->
+                        <div class="mb-3">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Medicamento do Print:</label>
+                            <select id="raiaUploadMedicamento" class="w-full text-xs font-semibold text-slate-900 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 focus:ring-rose-500 focus:border-rose-500">
+                                <option value="">🔍 Detectar automaticamente pelo OCR do Print</option>
+                                {% for p in produtos %}
+                                <option value="{{ p.produto_id }}">
+                                    {{ p.nome }} {{ p.dosagem }} ({{ p.fabricante }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Dropzone interativo com suporte a Ctrl+V -->
+                        <div id="dropzonePrint" 
+                             ondragover="tratarDragOver(event)" 
+                             ondragleave="tratarDragLeave(event)" 
+                             ondrop="tratarDrop(event)"
+                             onclick="document.getElementById('inputArquivoPrint').click()"
+                             tabindex="0"
+                             class="border-2 border-dashed border-slate-300 hover:border-rose-500 bg-slate-50 hover:bg-rose-50/40 rounded-2xl p-6 text-center cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-rose-400">
+                            
+                            <input type="file" id="inputArquivoPrint" accept="image/*" class="hidden" onchange="tratarArquivoSelecionado(event)">
+                            
+                            <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 mx-auto flex items-center justify-center text-xl mb-3 shadow-inner">
+                                <i class="fa-regular fa-image"></i>
+                            </div>
+                            
+                            <p class="text-xs font-bold text-slate-800">Clique para escolher a imagem</p>
+                            <p class="text-[11px] text-slate-500 mt-1">ou arraste e solte o print (PNG, JPG, WEBP)</p>
+                            
+                            <div class="mt-3 inline-flex items-center gap-1.5 bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold px-2.5 py-1 rounded-lg">
+                                <i class="fa-solid fa-paste"></i>
+                                <span>Você também pode tirar print e colar aqui com <strong>Ctrl + V</strong></span>
+                            </div>
+                        </div>
+
+                        <!-- Spinner de processamento OCR -->
+                        <div id="loadingOcr" class="hidden mt-4 p-4 rounded-xl bg-rose-50 border border-rose-200 text-center">
+                            <i class="fa-solid fa-spinner fa-spin text-rose-600 text-2xl mb-2"></i>
+                            <div class="text-xs font-bold text-rose-900">Processando print com OCR nativo...</div>
+                            <div class="text-[11px] text-rose-700 mt-0.5">Identificando medicamento, valores em R$, ofertas e laboratório</div>
+                        </div>
+                    </div>
+
+                    <!-- Card de Resultado e Confirmação do Preço (visível após envio do print) -->
+                    <div id="cardConfirmacaoOcr" class="hidden bg-white rounded-2xl shadow-sm border-2 border-emerald-400 p-5 space-y-4">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <div class="flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <h4 class="font-bold text-slate-900 text-xs sm:text-sm">Dados Detectados no Print</h4>
+                            </div>
+                            <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
+                                Pronto para Salvar
+                            </span>
+                        </div>
+
+                        <!-- Miniatura do Print Clicável -->
+                        <div class="relative group rounded-xl overflow-hidden border border-slate-200 bg-slate-100 max-h-48 flex items-center justify-center cursor-pointer" onclick="abrirModalPrint(document.getElementById('ocrUrlComprovante').value, document.getElementById('ocrNomeMedicamento').innerText)">
+                            <img id="previewMiniaturaPrint" src="" alt="Print da Droga Raia" class="object-cover max-h-48 w-full group-hover:opacity-90 transition">
+                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-bold transition">
+                                <i class="fa-solid fa-magnifying-glass-plus mr-1"></i> Ver print completo
+                            </div>
+                        </div>
+
+                        <!-- Form para confirmação / ajuste dos dados -->
+                        <form id="formConfirmarOcr" onsubmit="confirmarPrecoOcr(event)" class="space-y-3">
+                            <input type="hidden" id="ocrProdutoId" value="">
+                            <input type="hidden" id="ocrUrlComprovante" value="">
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Medicamento Vinculado:</label>
+                                <div id="ocrNomeMedicamento" class="text-xs font-black text-rose-900 bg-rose-50 p-2.5 rounded-lg border border-rose-200">
+                                    —
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Preço Caixa (R$):</label>
+                                    <input type="number" step="0.01" id="ocrPrecoUnitario" required class="w-full text-xs font-black text-slate-900 bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 focus:ring-emerald-500">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Laboratório / Marca:</label>
+                                    <input type="text" id="ocrLaboratorio" required class="w-full text-xs font-semibold text-slate-900 bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 focus:ring-emerald-500">
+                                </div>
+                            </div>
+
+                            <!-- Promoção detectada -->
+                            <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-3">
+                                <div class="flex items-center gap-2 mb-1.5">
+                                    <input type="checkbox" id="ocrTemPromo" onchange="togglePromoOcr()" class="rounded border-amber-300 text-amber-600">
+                                    <label for="ocrTemPromo" class="text-[11px] font-bold text-amber-900 cursor-pointer">Promoção por quantidade (ex: Leve 4 por X)</label>
+                                </div>
+                                <div id="ocrCamposPromo" class="hidden grid grid-cols-2 gap-2 pt-2 border-t border-amber-200 text-xs">
+                                    <div>
+                                        <label class="block text-[10px] font-semibold text-amber-900 mb-0.5">Qtd Mínima:</label>
+                                        <input type="number" id="ocrQtdPromo" value="4" min="2" class="w-full border border-amber-300 rounded-lg px-2 py-1 bg-white text-xs">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-semibold text-amber-900 mb-0.5">Preço Unitário Promo (R$):</label>
+                                        <input type="number" step="0.01" id="ocrPrecoPromo" class="w-full border border-amber-300 rounded-lg px-2 py-1 bg-white text-xs">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Estoque na Filial (Tijuca):</label>
+                                <select id="ocrEstoque" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5">
+                                    <option value="Disponível para retirada">Disponível para retirada</option>
+                                    <option value="Disponível na loja">Disponível na loja</option>
+                                    <option value="Não confirmado">Não confirmado</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" id="btnConfirmarOcr" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs sm:text-sm shadow transition flex items-center justify-center gap-2 active:scale-98">
+                                <i class="fa-solid fa-circle-check"></i> Confirmar Cotação (Válida por 3 Dias)
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+
+                <!-- Coluna Direita: Dashboard de Validade dos 7 Medicamentos (7 cols) -->
+                <div class="lg:col-span-7 space-y-4">
+                    
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-4 border-b border-slate-100 gap-2">
+                            <div>
+                                <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                                    <i class="fa-solid fa-calendar-check text-rose-600"></i>
+                                    Validade das Cotações dos Medicamentos (Política de 3 Dias)
+                                </h3>
+                                <p class="text-[11px] text-slate-500 mt-0.5">
+                                    Acompanhe a vigência de cada cotação. Medicamentos expirados necessitam de novo print.
+                                </p>
+                            </div>
+                            <button onclick="carregarStatusPrintsRaia()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 self-start sm:self-auto">
+                                <i class="fa-solid fa-arrows-rotate"></i> Atualizar Status
+                            </button>
+                        </div>
+
+                        <!-- Lista de Cards de Validade -->
+                        <div id="listaStatusRaia" class="space-y-3">
+                            <div class="text-center py-8 text-slate-400">
+                                <i class="fa-solid fa-spinner fa-spin text-lg mb-2"></i>
+                                <p>Carregando status dos prints...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- ABA 5: LOJA FÍSICA / PRESENCIAL           -->
+        <!-- ========================================== -->
+        <section id="aba-presencial" class="hidden space-y-5">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 max-w-3xl mx-auto">
+                <div class="flex items-start gap-4 mb-5 pb-4 border-b border-slate-100">
+                    <div class="w-11 h-11 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 text-xl font-bold">
+                        <i class="fa-solid fa-walkie-talkie"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900">Registrar Preço na Loja Física / Balcão</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            Registre preços obtidos diretamente no caixa das farmácias na Tijuca, WhatsApp ou televendas.
+                        </p>
+                    </div>
+                </div>
+
+                <form id="formPresencial" onsubmit="salvarPrecoPresencial(event)" class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Drogaria:</label>
+                            <select id="presencialDrogaria" onchange="atualizarFilialPresencial()" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs">
+                                <option value="Drogaria Venancio">Drogaria Venancio</option>
+                                <option value="Drogarias Pacheco">Drogarias Pacheco</option>
+                                <option value="Droga Raia">Droga Raia</option>
+                                <option value="Drogasmil">Drogasmil</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Filial:</label>
+                            <input type="text" id="presencialFilial" readonly value="Rua Conde de Bonfim, 532 — Tijuca" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-600">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Preço Unitário (R$):</label>
+                            <input type="number" step="0.01" id="presencialPreco" required placeholder="Ex: 28.50" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Nº de Caixas:</label>
+                            <input type="number" id="presencialQtd" value="1" min="1" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Forma de Consulta:</label>
+                            <select id="presencialFonte" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs">
+                                <option value="Consulta presencial">Presencial no balcão</option>
+                                <option value="Consulta por WhatsApp">WhatsApp da filial</option>
+                                <option value="Consulta por telefone">Telefone da filial</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Estoque na Loja:</label>
+                            <select id="presencialEstoque" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs">
+                                <option value="Disponível na loja">Disponível na loja</option>
+                                <option value="Indisponível na loja">Indisponível</option>
+                                <option value="Não confirmado">Não confirmado</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center pt-5">
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="presencialCpf" class="rounded border-slate-300 text-cyan-600">
+                                <span class="ms-2 text-xs font-medium text-slate-700">Preço com benefício de CPF cadastrado</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Observações adicionais:</label>
+                        <input type="text" id="presencialObs" placeholder="Ex: oferta relâmpago do caixa" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs">
+                    </div>
+
+                    <button type="submit" id="btnSalvarPresencial" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-xl text-xs sm:text-sm shadow transition">
+                        <i class="fa-solid fa-floppy-disk"></i> Salvar Preço Presencial
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- ABA 6: HISTÓRICO COMPLETO                 -->
+        <!-- ========================================== -->
+        <section id="aba-historico" class="hidden space-y-5">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-sm">Histórico de Coletas Realizadas</h3>
+                        <p class="text-xs text-slate-500">Registro cronológico de todas as consultas e compras monitoradas</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="carregarHistoricoTabela()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition">
+                            <i class="fa-solid fa-rotate-right"></i> Atualizar
+                        </button>
+                        <a href="/api/relatorio/csv" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition">
+                            <i class="fa-solid fa-download"></i> Baixar Planilha CSV
+                        </a>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-600">
+                        <thead class="bg-slate-50 text-slate-700 uppercase text-[10px] font-bold border-b border-slate-200">
+                            <tr>
+                                <th class="px-3 py-2">Data/Hora</th>
+                                <th class="px-3 py-2">Drogaria</th>
+                                <th class="px-3 py-2">Filial</th>
+                                <th class="px-3 py-2">Modalidade</th>
+                                <th class="px-3 py-2">Condição</th>
+                                <th class="px-3 py-2 text-right">R$ / Caixa</th>
+                                <th class="px-3 py-2 text-center">Caixas</th>
+                                <th class="px-3 py-2 text-right">Total</th>
+                                <th class="px-3 py-2">Fonte</th>
+                                <th class="px-3 py-2">Observações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaHistoricoBody" class="divide-y divide-slate-100">
+                            <tr>
+                                <td colspan="10" class="text-center py-6 text-slate-400">Carregando histórico...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Mobile Bottom Navigation Bar (Smartphones) -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 py-1.5 px-2 flex justify-around items-center shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
+        <button onclick="trocarAba('cesta')" id="mobtab-cesta" class="mobtab-btn flex flex-col items-center py-1 px-1.5 text-cyan-700 font-bold transition">
+            <i class="fa-solid fa-basket-shopping text-base text-emerald-600"></i>
+            <span class="text-[9px] mt-0.5 leading-tight">Lista</span>
+        </button>
+        <button onclick="trocarAba('comparador')" id="mobtab-comparador" class="mobtab-btn flex flex-col items-center py-1 px-1.5 text-slate-500 transition">
+            <i class="fa-solid fa-chart-line text-base text-cyan-600"></i>
+            <span class="text-[9px] mt-0.5 leading-tight">Comparar</span>
+        </button>
+        <button onclick="trocarAba('raia')" id="mobtab-raia" class="mobtab-btn flex flex-col items-center py-1 px-1.5 text-slate-500 relative transition">
+            <i class="fa-solid fa-camera text-base text-rose-500"></i>
+            <span id="mobtabBadgeRaia" class="hidden absolute top-0.5 right-1 w-2 h-2 rounded-full bg-rose-500"></span>
+            <span class="text-[9px] mt-0.5 leading-tight">Droga Raia</span>
+        </button>
+        <button onclick="trocarAba('cadastro')" id="mobtab-cadastro" class="mobtab-btn flex flex-col items-center py-1 px-1.5 text-slate-500 transition">
+            <i class="fa-solid fa-folder-plus text-base text-cyan-600"></i>
+            <span class="text-[9px] mt-0.5 leading-tight">Gerenciar</span>
+        </button>
+        <button onclick="trocarAba('presencial')" id="mobtab-presencial" class="mobtab-btn flex flex-col items-center py-1 px-1.5 text-slate-500 transition">
+            <i class="fa-solid fa-receipt text-base text-indigo-600"></i>
+            <span class="text-[9px] mt-0.5 leading-tight">Balcão</span>
+        </button>
+    </nav>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 text-xs py-4 text-center border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4">
+            FarmaPreço Tijuca • Comparando farmácias e laboratórios de medicamentos para sua maior economia.
+        </div>
+    </footer>
+
+    <!-- Modal do App Mobile -->
+    <div id="modalApp" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-mobile-screen-button text-base"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-extrabold text-slate-900 text-base">FarmaPreço no Celular</h4>
+                        <p class="text-xs text-slate-500">Acesse e instale no Android & iPhone</p>
+                    </div>
+                </div>
+                <button onclick="fecharModalApp()" class="text-slate-400 hover:text-slate-700 w-8 h-8 rounded-lg flex items-center justify-center text-lg hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="mt-4 space-y-4">
+                <!-- IP Local & QR Code -->
+                <div class="bg-gradient-to-br from-cyan-50 to-emerald-50 border border-cyan-200/70 rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4">
+                    <div class="bg-white p-2 rounded-xl shadow-sm border border-slate-200 flex-shrink-0 text-center">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=http://192.168.15.9:8000" alt="QR Code FarmaPreço" class="w-28 h-28 rounded-lg mx-auto" onerror="this.src='/static/icons/icon-192.png'">
+                        <span class="text-[9px] text-slate-400 block mt-1 font-medium">Aponte a câmera</span>
+                    </div>
+                    <div class="space-y-1.5 text-center sm:text-left">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-800 bg-cyan-200/60 px-2 py-0.5 rounded">Rede Wi-Fi Local</span>
+                        <div class="text-xs text-slate-700 font-semibold">Endereço direto do seu servidor:</div>
+                        <div class="bg-white px-3 py-1.5 rounded-lg border border-slate-200 font-mono text-xs font-bold text-slate-900 select-all flex items-center justify-between gap-2">
+                            <span id="txtLinkApp">http://192.168.15.9:8000</span>
+                            <button onclick="copiarLinkApp()" class="text-cyan-600 hover:text-cyan-800 text-xs" title="Copiar"><i class="fa-regular fa-copy"></i></button>
+                        </div>
+                        <p class="text-[11px] text-slate-500">Conecte o smartphone no mesmo Wi-Fi de casa e acesse pelo navegador.</p>
+                    </div>
+                </div>
+
+                <!-- Abas Instruções iOS / Android / Flutter -->
+                <div class="space-y-3">
+                    <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
+                        <div class="font-bold text-xs text-slate-900 flex items-center gap-2">
+                            <i class="fa-brands fa-apple text-slate-800 text-sm"></i>
+                            <span>iPhone (Safari) — Como Instalar:</span>
+                        </div>
+                        <ol class="text-[11px] text-slate-600 list-decimal list-inside space-y-1 pl-1">
+                            <li>Abra o link acima no <strong>Safari</strong> do iPhone.</li>
+                            <li>Toque no botão <strong>Compartilhar</strong> (ícone do quadrado com a seta para cima).</li>
+                            <li>Role para baixo e selecione <strong>"Adicionar à Tela de Início"</strong>.</li>
+                            <li>Pronto! Ele funciona como um aplicativo em tela cheia com acesso à câmera para prints!</li>
+                        </ol>
+                    </div>
+
+                    <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
+                        <div class="font-bold text-xs text-slate-900 flex items-center gap-2">
+                            <i class="fa-brands fa-android text-emerald-600 text-sm"></i>
+                            <span>Android (Chrome) — Como Instalar:</span>
+                        </div>
+                        <ol class="text-[11px] text-slate-600 list-decimal list-inside space-y-1 pl-1">
+                            <li>Abra o link acima no <strong>Google Chrome</strong> do celular.</li>
+                            <li>Toque no menu (<strong>3 pontinhos</strong>) no canto superior direito.</li>
+                            <li>Toque em <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela inicial"</strong>.</li>
+                            <li>O app aparecerá na gaveta de aplicativos com ícone próprio e navegação rápida!</li>
+                        </ol>
+                    </div>
+
+                    <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
+                        <div class="font-bold text-xs text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-mobile text-cyan-600 text-sm"></i>
+                            <span>Código Nativo Flutter (iOS & Android):</span>
+                        </div>
+                        <p class="text-[11px] text-slate-600">
+                            A pasta <code class="bg-slate-200 text-slate-800 px-1 py-0.5 rounded text-[10px]">app_mobile/</code> no diretório do projeto contém o código completo em Flutter pronto para compilar ou rodar no seu celular.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-5 text-right">
+                <button onclick="fecharModalApp()" class="px-5 py-2 rounded-xl bg-slate-800 text-white font-bold text-xs hover:bg-slate-900 transition">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Visualização do Print Completo -->
+    <div id="modalVisualizarPrint" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-4xl w-full p-4 overflow-hidden shadow-2xl relative max-h-[95vh] flex flex-col">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-receipt text-rose-600"></i>
+                    <h4 class="font-bold text-sm text-slate-800" id="modalPrintTitulo">Comprovante de Preço — Droga Raia</h4>
+                </div>
+                <button onclick="fecharModalPrint()" class="text-slate-400 hover:text-slate-700 w-8 h-8 rounded-lg flex items-center justify-center text-lg hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="mt-3 flex-1 flex items-center justify-center overflow-auto bg-slate-50 rounded-xl p-2">
+                <img id="modalPrintImg" src="" alt="Comprovante" class="max-w-full max-h-[80vh] rounded-lg shadow-sm object-contain">
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast de Notificações -->
+    <div id="toast" class="fixed bottom-16 md:bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 border border-slate-700">
+        <i id="toastIcon" class="fa-solid fa-check-circle text-emerald-400 text-sm"></i>
+        <span id="toastMsg">Notificação</span>
+    </div>
+
+    <!-- JavaScript Principal -->
+    <script>
+        // Registrar Service Worker para PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then(reg => {
+                    console.log('ServiceWorker FarmaPreço ativo:', reg.scope);
+                }).catch(err => {
+                    console.log('ServiceWorker erro:', err);
+                });
+            });
+        }
+
+        let produtosCache = [];
+        let produtoAtivoId = "{{ produto.produto_id }}";
+
+        const filiaisMap = {
+            "Drogaria Venancio": "Rua Conde de Bonfim, 532 — Tijuca",
+            "Drogarias Pacheco": "Rua Conde de Bonfim, 580 — Tijuca",
+            "Droga Raia": "Rua Conde de Bonfim, 536 — Tijuca",
+            "Drogasmil": "Praça Saenz Peña, 29 — Tijuca"
+        };
+
+        function showToast(msg, icon = "fa-check-circle text-emerald-400") {
+            const toast = document.getElementById("toast");
+            const toastMsg = document.getElementById("toastMsg");
+            const toastIcon = document.getElementById("toastIcon");
+            toastMsg.innerText = msg;
+            toastIcon.className = `fa-solid ${icon} text-sm`;
+            toast.classList.remove("translate-y-20", "opacity-0");
+            setTimeout(() => {
+                toast.classList.add("translate-y-20", "opacity-0");
+            }, 4000);
+        }
+
+        function abrirModalApp() {
+            document.getElementById("modalApp").classList.remove("hidden");
+        }
+
+        function fecharModalApp() {
+            document.getElementById("modalApp").classList.add("hidden");
+        }
+
+        function copiarLinkApp() {
+            navigator.clipboard.writeText("http://192.168.15.9:8000");
+            showToast("Link copiado para a área de transferência!", "fa-circle-check text-cyan-400");
+        }
+
+        function trocarAba(aba) {
+            document.querySelectorAll("section[id^='aba-']").forEach(sec => sec.classList.add("hidden"));
+            
+            // Abas Desktop
+            document.querySelectorAll(".tab-btn").forEach(btn => {
+                btn.classList.remove("text-cyan-700", "border-cyan-600", "font-bold");
+                btn.classList.add("text-slate-500", "border-transparent");
+            });
+
+            // Abas Mobile
+            document.querySelectorAll(".mobtab-btn").forEach(btn => {
+                btn.classList.remove("text-cyan-700", "font-bold");
+                btn.classList.add("text-slate-500");
+            });
+
+            const sec = document.getElementById(`aba-${aba}`);
+            if (sec) sec.classList.remove("hidden");
+
+            const tabBtn = document.getElementById(`tab-${aba}`);
+            if (tabBtn) {
+                tabBtn.classList.remove("text-slate-500", "border-transparent");
+                tabBtn.classList.add("text-cyan-700", "border-cyan-600", "font-bold");
+            }
+
+            const mobBtn = document.getElementById(`mobtab-${aba}`);
+            if (mobBtn) {
+                mobBtn.classList.remove("text-slate-500");
+                mobBtn.classList.add("text-cyan-700", "font-bold");
+            }
+
+            if (aba === "historico") carregarHistoricoTabela();
+            if (aba === "cesta") carregarCestaMensal();
+            if (aba === "raia") carregarStatusPrintsRaia();
+            if (aba === "laboratorios") {
+                const prod = getProdutoAtivo();
+                if (prod) {
+                    document.getElementById("inputBuscaLab").value = `${prod.principio_ativo} ${prod.dosagem}`;
+                    buscarLaboratorios();
+                }
+            }
+            if (aba === "cadastro") carregarListaMedicamentos();
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function getProdutoAtivo() {
+            const id = document.getElementById("seletorMedicamento").value;
+            return produtosCache.find(p => p.produto_id === id) || produtosCache[0];
+        }
+
+        function trocarMedicamento() {
+            const id = document.getElementById("seletorMedicamento").value;
+            produtoAtivoId = id;
+            const p = produtosCache.find(x => x.produto_id === id);
+            if (p) {
+                document.getElementById("infoPrincipioAtivo").innerText = p.principio_ativo;
+                document.getElementById("infoApresentacao").innerText = p.apresentacao;
+                document.getElementById("badgeCategoriaAtiva").innerText = p.categoria || "Referência";
+                if (p.url_raia) {
+                    document.getElementById("linkRaiaDinamico").href = p.url_raia;
+                }
+                const qtdMensal = parseInt(p.quantidade_mensal || 1);
+                setQtd(qtdMensal);
+            } else {
+                atualizarComparacao();
+            }
+        }
+
+        function setQtd(n) {
+            document.getElementById("inputQtd").value = n;
+            document.querySelectorAll(".btn-qtd").forEach(btn => {
+                if (btn.getAttribute("data-qtd") == n) {
+                    btn.classList.add("bg-white", "text-slate-800", "shadow-sm");
+                    btn.classList.remove("text-slate-600");
+                } else {
+                    btn.classList.remove("bg-white", "text-slate-800", "shadow-sm");
+                    btn.classList.add("text-slate-600");
+                }
+            });
+            atualizarComparacao();
+        }
+
+        function formatarMoeda(val) {
+            if (val === null || val === undefined || isNaN(val)) return "—";
+            return Number(val).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+        }
+
+        async function atualizarComparacao() {
+            const qtd = document.getElementById("inputQtd").value || 1;
+            const confirmado = document.getElementById("checkConfirmado").checked;
+            const modalidade = document.getElementById("filtroModalidade").value;
+            const prodId = document.getElementById("seletorMedicamento").value || "MED001";
+
+            const tbody = document.getElementById("tabelaOfertasBody");
+            tbody.innerHTML = `<tr><td colspan="10" class="px-4 py-6 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-lg mb-1.5"></i><p>Calculando melhor preço...</p></td></tr>`;
+
+            try {
+                const res = await fetch(`/api/comparar?quantidade=${qtd}&somente_confirmado=${confirmado}&modalidade=${modalidade}&produto_id=${prodId}`);
+                const data = await res.json();
+
+                const cardMelhor = document.getElementById("cardMelhorOpcao");
+                const totalBadge = document.getElementById("totalOfertasBadge");
+
+                if (!data.sucesso || !data.ofertas || data.ofertas.length === 0) {
+                    cardMelhor.classList.add("hidden");
+                    totalBadge.innerText = "0 ofertas";
+                    tbody.innerHTML = `<tr><td colspan="10" class="px-4 py-8 text-center text-slate-500"><i class="fa-solid fa-circle-exclamation text-amber-500 text-xl mb-1.5 block"></i><p>${data.mensagem || 'Nenhum preço registrado ainda para este medicamento.'}</p><button onclick="coletarAutomatico()" class="mt-2.5 text-xs bg-emerald-600 text-white font-bold px-3 py-1.5 rounded-lg shadow"><i class="fa-solid fa-rotate"></i> Consultar Farmácias Agora</button></td></tr>`;
+                    carregarLaboratoriosIntegrado();
+                    return;
+                }
+
+                totalBadge.innerText = `${data.total_ofertas} oferta(s)`;
+
+                const melhor = data.melhor_opcao;
+                document.getElementById("destaqueQtdCaixas").innerText = `${qtd} ${qtd == 1 ? 'CAIXA' : 'CAIXAS'}`;
+                document.getElementById("destaqueDrogaria").innerText = melhor.drogaria;
+                document.getElementById("destaqueBadgeCondicao").innerText = melhor.condicao;
+                document.getElementById("destaqueFilial").innerText = melhor.filial;
+                document.getElementById("destaqueModalidade").innerText = melhor.modalidade;
+                document.getElementById("destaqueTotalEstimado").innerText = formatarMoeda(melhor.total_estimado);
+                document.getElementById("destaqueCustoCaixa").innerText = formatarMoeda(melhor.custo_por_caixa);
+                document.getElementById("destaqueEstoque").innerText = melhor.estoque;
+
+                if (data.economia_maxima > 0) {
+                    document.getElementById("destaqueEconomia").innerText = formatarMoeda(data.economia_maxima);
+                    document.getElementById("destaqueEconomiaBox").classList.remove("hidden");
+                } else {
+                    document.getElementById("destaqueEconomiaBox").classList.add("hidden");
+                }
+                cardMelhor.classList.remove("hidden");
+
+                tbody.innerHTML = "";
+                data.ofertas.forEach(of => {
+                    const tr = document.createElement("tr");
+                    const isWinner = of.posicao === 1;
+                    if (isWinner) tr.className = "bg-amber-50/60 font-semibold";
+
+                    let medalha = `<span class="inline-block w-5 h-5 rounded-full bg-slate-100 text-slate-600 font-bold text-[10px] flex items-center justify-center">${of.posicao}</span>`;
+                    if (of.posicao === 1) medalha = `<span class="inline-block w-5 h-5 rounded-full bg-amber-400 text-white font-bold text-[10px] flex items-center justify-center shadow"><i class="fa-solid fa-trophy"></i></span>`;
+                    else if (of.posicao === 2) medalha = `<span class="inline-block w-5 h-5 rounded-full bg-slate-300 text-slate-700 font-bold text-[10px] flex items-center justify-center">2</span>`;
+                    else if (of.posicao === 3) medalha = `<span class="inline-block w-5 h-5 rounded-full bg-amber-700/60 text-white font-bold text-[10px] flex items-center justify-center">3</span>`;
+
+                    const badgeEstoque = of.confirmado ? 
+                        `<span class="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-circle-check text-[8px]"></i> Confirmado</span>` :
+                        `<span class="inline-flex items-center gap-1 text-[10px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-clock text-[8px]"></i> ${of.estoque}</span>`;
+
+                    let labDesc = `<div class="font-bold text-slate-900">${of.laboratorio || 'Referência'}</div>`;
+                    if (of.observacoes && of.observacoes.length > 0 && !of.observacoes.startsWith("Coleta") && !of.observacoes.startsWith("Catálogo")) {
+                        labDesc += `<div class="text-[10px] text-slate-500 max-w-[140px] truncate" title="${of.observacoes}">${of.observacoes}</div>`;
+                    }
+
+                    let raiaBadge = "";
+                    if (of.is_raia) {
+                        if (of.expirado_3dias) {
+                            raiaBadge = `<div class="mt-1"><button onclick="trocarAba('raia')" class="inline-flex items-center gap-1 text-[9px] font-bold text-rose-700 bg-rose-100 hover:bg-rose-200 border border-rose-300 px-2 py-0.5 rounded-full transition" title="Preço expirado há mais de 3 dias. Clique para enviar novo print."><i class="fa-solid fa-triangle-exclamation"></i> Print expirado (${of.dias_desde_upload}d) — Renovar</button></div>`;
+                        } else {
+                            raiaBadge = `<div class="mt-1"><span class="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full"><i class="fa-solid fa-clock"></i> Válido (${of.dias_desde_upload}d)</span></div>`;
+                        }
+                    }
+
+                    let linkHtml = '<span class="text-slate-400">—</span>';
+                    if (of.url) {
+                        if (of.url.includes('/prints/raia/')) {
+                            linkHtml = `<button onclick="abrirModalPrint('${of.url}', 'Comprovante Droga Raia — ${of.laboratorio}')" class="text-rose-600 hover:text-rose-800 text-xs font-bold inline-flex items-center gap-1"><i class="fa-solid fa-image"></i> Ver Print</button>`;
+                        } else {
+                            linkHtml = `<a href="${of.url}" target="_blank" class="text-cyan-600 hover:text-cyan-800 text-xs font-bold inline-flex items-center gap-1">Ver <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i></a>`;
+                        }
+                    }
+
+                    tr.innerHTML = `
+                        <td class="px-4 py-2.5 text-center">${medalha}</td>
+                        <td class="px-4 py-2.5">
+                            <div class="font-bold text-slate-900">${of.drogaria}</div>
+                            <div class="text-[10px] text-slate-500">${of.filial}</div>
+                            ${raiaBadge}
+                        </td>
+                        <td class="px-4 py-2.5">
+                            ${labDesc}
+                        </td>
+                        <td class="px-4 py-2.5">
+                            <span class="text-[10px] px-2 py-0.5 rounded-md font-medium ${of.modalidade.includes('Loja física') ? 'bg-indigo-50 text-indigo-700' : 'bg-cyan-50 text-cyan-800'}">
+                                ${of.modalidade}
+                            </span>
+                        </td>
+                        <td class="px-4 py-2.5">
+                            <div class="text-xs ${of.condicao.includes('Promoção') ? 'text-amber-700 font-bold' : 'text-slate-700'}">${of.condicao}</div>
+                            ${of.minimo_caixas > 1 ? `<div class="text-[9px] text-slate-500">Mínimo: ${of.minimo_caixas} cx</div>` : ''}
+                        </td>
+                        <td class="px-4 py-2.5 text-right font-medium text-slate-800">${formatarMoeda(of.custo_por_caixa)}</td>
+                        <td class="px-4 py-2.5 text-right font-black text-xs sm:text-sm ${isWinner ? 'text-emerald-700' : 'text-slate-900'}">${formatarMoeda(of.total_estimado)}</td>
+                        <td class="px-4 py-2.5 text-center">${badgeEstoque}</td>
+                        <td class="px-4 py-2.5 text-center text-[10px] text-slate-500">${of.data_hora}</td>
+                        <td class="px-4 py-2.5 text-center">
+                            ${linkHtml}
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                // Carregar automaticamente o comparativo de laboratórios para este medicamento
+                carregarLaboratoriosIntegrado();
+
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="10" class="px-4 py-6 text-center text-rose-500">Erro: ${err.message}</td></tr>`;
+            }
+        }
+
+        async function coletarAutomatico() {
+            const btn = document.getElementById("btnColetarGeral");
+            const icon = document.getElementById("iconColetaGeral");
+            btn.disabled = true;
+            icon.classList.add("fa-spin");
+
+            const prodId = document.getElementById("seletorMedicamento").value || "MED001";
+            showToast("Consultando farmácias vizinhas em tempo real...", "fa-spinner fa-spin text-cyan-400");
+
+            try {
+                const res = await fetch(`/api/coletar/todas?produto_id=${prodId}`, { method: "POST" });
+                const data = await res.json();
+                if (data.sucesso) {
+                    showToast(`Concluído! ${data.salvamento.salvos} novos preços salvos.`, "fa-circle-check text-emerald-400");
+                    atualizarComparacao();
+                } else {
+                    showToast("Erro durante a consulta.", "fa-circle-exclamation text-rose-400");
+                }
+            } catch (err) {
+                showToast("Falha na conexão com o servidor.", "fa-circle-xmark text-rose-400");
+            } finally {
+                btn.disabled = false;
+                icon.classList.remove("fa-spin");
+            }
+        }
+
+        // ==========================================
+        // COMPARAÇÃO INTEGRADA DE LABORATÓRIOS (ABA PRINCIPAL)
+        // ==========================================
+        async function carregarLaboratoriosIntegrado() {
+            const p = getProdutoAtivo();
+            if (!p) return;
+
+            const nomeEl = document.getElementById("labIntegradoNomeMedicamento");
+            if (nomeEl) nomeEl.innerText = `${p.nome} ${p.dosagem}`;
+
+            const tbody = document.getElementById("tabelaLaboratoriosIntegradoBody");
+            const badge = document.getElementById("badgeIntegradoTotalLabs");
+            const banner = document.getElementById("bannerIntegradoLab");
+            if (!tbody) return;
+
+            tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-6 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-lg mb-1.5"></i><p>Pesquisando todos os laboratórios (EMS, Medley, Eurofarma, Sanofi, Aché, etc.)...</p></td></tr>`;
+            if (badge) badge.innerText = "Consultando...";
+
+            try {
+                const termo = `${p.principio_ativo} ${p.dosagem}`.trim();
+                const res = await fetch(`/api/laboratorios/comparar?principio_ativo=${encodeURIComponent(termo)}`);
+                const data = await res.json();
+
+                if (!data.sucesso || !data.laboratorios || data.laboratorios.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-6 text-center text-slate-500"><i class="fa-solid fa-circle-info text-purple-500 mr-1"></i> Laboratórios adicionais não listados online no momento. As cotações das farmácias vizinhas estão no ranking acima.</td></tr>`;
+                    if (badge) badge.innerText = "0 marcas extras";
+                    if (banner) banner.classList.add("hidden");
+                    return;
+                }
+
+                if (badge) badge.innerText = `${data.total_laboratorios} marcas/laboratórios`;
+
+                if (data.economia_maxima_pct > 0) {
+                    document.getElementById("labIntegradoEconomiaPct").innerText = `${data.economia_maxima_pct}%`;
+                    document.getElementById("labIntegradoDiferencaReais").innerText = formatarMoeda(data.diferenca_maxima);
+                    document.getElementById("labIntegradoNomeMaisBarato").innerText = `${data.laboratorio_mais_barato.laboratorio} (${formatarMoeda(data.laboratorio_mais_barato.preco)})`;
+                    if (banner) banner.classList.remove("hidden");
+                } else {
+                    if (banner) banner.classList.add("hidden");
+                }
+
+                tbody.innerHTML = "";
+                data.laboratorios.forEach((lab, idx) => {
+                    const tr = document.createElement("tr");
+                    const isLowest = idx === 0;
+                    if (isLowest) tr.className = "bg-emerald-50/70 font-semibold";
+
+                    const badgeTipo = lab.categoria === "Genérico" ?
+                        `<span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded">Genérico</span>` :
+                        (lab.categoria === "Referência" ? `<span class="bg-purple-100 text-purple-800 text-[10px] font-bold px-2 py-0.5 rounded">Referência</span>` : `<span class="bg-slate-100 text-slate-700 text-[10px] font-medium px-2 py-0.5 rounded">Similar</span>`);
+
+                    const ecoBadge = lab.economia_pct > 0 ?
+                        `<span class="text-emerald-700 font-bold text-xs bg-emerald-100/90 px-2 py-0.5 rounded">-${lab.economia_pct}% (${formatarMoeda(lab.economia_reais)})</span>` :
+                        `<span class="text-slate-400 text-[11px]">— (Referência/Mais caro)</span>`;
+
+                    tr.innerHTML = `
+                        <td class="px-4 py-3 font-bold text-slate-900">
+                            ${isLowest ? '<i class="fa-solid fa-medal text-amber-500 mr-1"></i>' : ''}
+                            ${lab.laboratorio}
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="text-xs text-slate-800 font-medium">${lab.nome_produto}</div>
+                            <div class="text-[10px] text-slate-400">${lab.drogaria}</div>
+                        </td>
+                        <td class="px-4 py-3 text-center">${badgeTipo}</td>
+                        <td class="px-4 py-3 text-right font-black text-slate-900 text-xs sm:text-sm">${formatarMoeda(lab.preco)}</td>
+                        <td class="px-4 py-3 text-right">${ecoBadge}</td>
+                        <td class="px-4 py-3 text-center">
+                            ${lab.disponivel ? '<span class="text-emerald-600 text-[11px] font-semibold"><i class="fa-solid fa-check text-[9px]"></i> Disponível</span>' : '<span class="text-slate-400 text-[11px]">Indisponível</span>'}
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            ${lab.url ? `<a href="${lab.url}" target="_blank" class="text-cyan-600 hover:text-cyan-800 font-bold text-xs inline-flex items-center gap-1">Ver <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i></a>` : '—'}
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-6 text-center text-rose-500">Erro ao carregar laboratórios: ${err.message}</td></tr>`;
+                if (badge) badge.innerText = "Erro";
+            }
+        }
+
+        // ==========================================
+        // LÓGICA DE COMPARAÇÃO POR LABORATÓRIOS
+        // ==========================================
+        async function buscarLaboratorios() {
+            const termo = document.getElementById("inputBuscaLab").value.trim();
+            if (!termo) {
+                showToast("Digite o princípio ativo ou medicamento.", "fa-circle-info text-amber-400");
+                return;
+            }
+
+            const tbody = document.getElementById("tabelaLaboratoriosBody");
+            const cardDestaque = document.getElementById("cardDestaqueLab");
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400"><i class="fa-solid fa-spinner fa-spin text-xl mb-2"></i><p>Pesquisando todos os laboratórios e genéricos para '${termo}'...</p></td></tr>`;
+
+            try {
+                const res = await fetch(`/api/laboratorios/comparar?principio_ativo=${encodeURIComponent(termo)}`);
+                const data = await res.json();
+
+                if (!data.sucesso || !data.laboratorios || data.laboratorios.length === 0) {
+                    cardDestaque.classList.add("hidden");
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-500"><i class="fa-solid fa-circle-exclamation text-amber-500 text-xl mb-2 block"></i>Nenhum laboratório concorrente encontrado para '${termo}'.</td></tr>`;
+                    document.getElementById("badgeTotalLabs").innerText = "0 marcas";
+                    return;
+                }
+
+                document.getElementById("badgeTotalLabs").innerText = `${data.total_laboratorios} laboratórios`;
+
+                // Card de economia
+                if (data.economia_maxima_pct > 0) {
+                    document.getElementById("labEconomiaPct").innerText = `${data.economia_maxima_pct}%`;
+                    document.getElementById("labNomeMaisBarato").innerText = data.laboratorio_mais_barato.laboratorio;
+                    document.getElementById("labPrecoMaisBarato").innerText = Number(data.laboratorio_mais_barato.preco).toFixed(2);
+                    document.getElementById("labNomeMaisCaro").innerText = data.laboratorio_mais_caro.laboratorio;
+                    document.getElementById("labPrecoMaisCaro").innerText = Number(data.laboratorio_mais_caro.preco).toFixed(2);
+                    document.getElementById("labDiferencaReais").innerText = formatarMoeda(data.diferenca_maxima);
+                    cardDestaque.classList.remove("hidden");
+                } else {
+                    cardDestaque.classList.add("hidden");
+                }
+
+                tbody.innerHTML = "";
+                data.laboratorios.forEach((lab, index) => {
+                    const tr = document.createElement("tr");
+                    const isLowest = index === 0;
+                    if (isLowest) tr.className = "bg-emerald-50/50 font-semibold";
+
+                    const badgeTipo = lab.categoria === "Genérico" ?
+                        `<span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded">Genérico</span>` :
+                        (lab.categoria === "Referência" ? `<span class="bg-purple-100 text-purple-800 text-[10px] font-bold px-2 py-0.5 rounded">Referência</span>` : `<span class="bg-slate-100 text-slate-700 text-[10px] font-medium px-2 py-0.5 rounded">Similar</span>`);
+
+                    const ecoBadge = lab.economia_pct > 0 ?
+                        `<span class="text-emerald-700 font-bold text-xs bg-emerald-100 px-2 py-0.5 rounded">-${lab.economia_pct}% (${formatarMoeda(lab.economia_reais)})</span>` :
+                        `<span class="text-slate-400 text-[11px]">— (Mais caro)</span>`;
+
+                    tr.innerHTML = `
+                        <td class="px-4 py-3 font-bold text-slate-900">${lab.laboratorio}</td>
+                        <td class="px-4 py-3">
+                            <div class="text-xs text-slate-800 font-medium">${lab.nome_produto}</div>
+                            <div class="text-[10px] text-slate-400">${lab.drogaria}</div>
+                        </td>
+                        <td class="px-4 py-3 text-center">${badgeTipo}</td>
+                        <td class="px-4 py-3 text-right font-black text-slate-900 text-xs sm:text-sm">${formatarMoeda(lab.preco)}</td>
+                        <td class="px-4 py-3 text-right">${ecoBadge}</td>
+                        <td class="px-4 py-3 text-center">
+                            ${lab.disponivel ? '<span class="text-emerald-600 text-xs font-semibold"><i class="fa-solid fa-check text-[10px]"></i> Disponível</span>' : '<span class="text-slate-400 text-xs">Indisponível</span>'}
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                ${lab.url ? `<a href="${lab.url}" target="_blank" class="text-cyan-600 hover:text-cyan-800 font-bold text-xs">Ver <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i></a>` : ''}
+                                <button onclick="adicionarLabComoMedicamento('${lab.nome_produto}', '${lab.laboratorio}', '${lab.categoria}', '${lab.url}')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2 py-1 rounded shadow-xs" title="Adicionar aos monitorados">
+                                    <i class="fa-solid fa-plus"></i> Monitorar
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-rose-500">Erro ao buscar laboratórios: ${err.message}</td></tr>`;
+            }
+        }
+
+        function adicionarLabComoMedicamento(nome, lab, cat, url) {
+            trocarAba("cadastro");
+            document.getElementById("cadNome").value = nome;
+            document.getElementById("cadFabricante").value = lab;
+            document.getElementById("cadCategoria").value = cat;
+            if (url) document.getElementById("cadUrlVenancio").value = url;
+            showToast("Preencha a dosagem e apresentação para salvar!", "fa-circle-info text-cyan-400");
+        }
+
+        // ==========================================
+        // GERENCIAR MEDICAMENTOS & PRODUTOS EM GERAL
+        // ==========================================
+        function abrirModalCadastro() {
+            trocarAba("cadastro");
+        }
+
+        function setTipoCadastro(tipo) {
+            const btnMed = document.getElementById("btnTipoMed");
+            const btnProd = document.getElementById("btnTipoProd");
+            const cadTipoItem = document.getElementById("cadTipoItem");
+            const tituloForm = document.getElementById("tituloFormCadastro");
+            const lblNome = document.getElementById("lblCadNome");
+            const inputNome = document.getElementById("cadNome");
+            const lblAtivo = document.getElementById("lblCadAtivo");
+            const inputAtivo = document.getElementById("cadAtivo");
+            const lblDosagem = document.getElementById("lblCadDosagem");
+            const inputDosagem = document.getElementById("cadDosagem");
+            const lblFabricante = document.getElementById("lblCadFabricante");
+            const inputFabricante = document.getElementById("cadFabricante");
+            const selectCategoria = document.getElementById("cadCategoria");
+
+            if (tipo === "produto") {
+                cadTipoItem.value = "produto";
+                btnProd.className = "px-3 py-1.5 rounded-lg bg-rose-600 text-white shadow-sm transition flex items-center gap-1.5 font-bold";
+                btnMed.className = "px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5 font-medium";
+                tituloForm.innerText = "Cadastrar Novo Produto Geral";
+                lblNome.innerText = "Nome do Produto (Higiene / Cosmético / Outro):";
+                inputNome.placeholder = "Ex: Sabonete Líquido Íntimo Dermacyd, Protetor Solar Isdin...";
+                lblAtivo.innerText = "Componente Principal / Ativo (Opcional):";
+                inputAtivo.placeholder = "Ex: Ácido Salicílico, Vitamina C, Ácido Lático...";
+                lblDosagem.innerText = "Volume / Peso / Conteúdo:";
+                inputDosagem.placeholder = "Ex: 200ml, 400ml, 50g, 150g, 7g...";
+                lblFabricante.innerText = "Marca / Fabricante:";
+                inputFabricante.placeholder = "Ex: Mantecorp, Nivea, Granado, La Roche-Posay, L'Oréal...";
+                selectCategoria.value = "Cuidados Pessoais";
+            } else {
+                cadTipoItem.value = "medicamento";
+                btnMed.className = "px-3 py-1.5 rounded-lg bg-cyan-700 text-white shadow-sm transition flex items-center gap-1.5 font-bold";
+                btnProd.className = "px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5 font-medium";
+                tituloForm.innerText = "Cadastrar Novo Medicamento";
+                lblNome.innerText = "Nome do Medicamento:";
+                inputNome.placeholder = "Ex: Sertralina, Quetiapina, Bup XR, Rosuvastatina...";
+                lblAtivo.innerText = "Princípio Ativo:";
+                inputAtivo.placeholder = "Ex: Cloridrato de sertralina, Rosuvastatina cálcica...";
+                lblDosagem.innerText = "Dosagem / Concentração:";
+                inputDosagem.placeholder = "Ex: 50mg, 300mg, 25mg, 5mg, 1g...";
+                lblFabricante.innerText = "Laboratório / Marca:";
+                inputFabricante.placeholder = "Ex: EMS, Medley, Eurofarma, Sanofi, Biolab, Aché...";
+                selectCategoria.value = "Genérico";
+            }
+        }
+
+        async function carregarListaMedicamentos() {
+            const container = document.getElementById("listaMedicamentosCadastrados");
+            try {
+                const res = await fetch("/api/produtos");
+                produtosCache = await res.json();
+
+                // Ordenar estritamente em ordem alfabética (A-Z) pelo nome
+                produtosCache.sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR", { sensitivity: "base" }));
+
+                // Atualizar seletor do topo em ordem alfabética
+                const seletor = document.getElementById("seletorMedicamento");
+                seletor.innerHTML = "";
+                produtosCache.forEach(p => {
+                    const opt = document.createElement("option");
+                    opt.value = p.produto_id;
+                    opt.innerText = `${p.nome} ${p.dosagem} (${p.fabricante})`;
+                    if (p.produto_id === produtoAtivoId) opt.selected = true;
+                    seletor.appendChild(opt);
+                });
+
+                // Atualizar também o seletor da Droga Raia para upload de prints em ordem alfabética
+                const seletorRaia = document.getElementById("raiaUploadMedicamento");
+                if (seletorRaia) {
+                    const valRaiaAntigo = seletorRaia.value;
+                    seletorRaia.innerHTML = `<option value="">🔍 Detectar automaticamente pelo OCR do Print</option>`;
+                    produtosCache.forEach(p => {
+                        const opt = document.createElement("option");
+                        opt.value = p.produto_id;
+                        opt.innerText = `${p.nome} ${p.dosagem} (${p.fabricante})`;
+                        if (p.produto_id === valRaiaAntigo) opt.selected = true;
+                        seletorRaia.appendChild(opt);
+                    });
+                }
+
+                // Atualizar badge de total
+                const badgeTotal = document.getElementById("badgeTotalCadastradosCount");
+                if (badgeTotal) badgeTotal.innerText = `${produtosCache.length} cadastrados`;
+
+                // Preencher lista da aba cadastro com botões Ver, Editar e Excluir
+                container.innerHTML = "";
+                produtosCache.forEach(p => {
+                    const card = document.createElement("div");
+                    card.className = "p-3 bg-slate-50 hover:bg-slate-100/90 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 transition";
+                    card.innerHTML = `
+                        <div class="space-y-0.5">
+                            <div class="font-bold text-xs text-slate-900 flex items-center gap-1.5 flex-wrap">
+                                <span>${p.nome}</span>
+                                <span class="text-cyan-800 font-extrabold bg-cyan-100/80 px-1.5 py-0.2 rounded text-[10px]">${p.dosagem}</span>
+                                <span class="text-slate-500 text-[10px]">(${p.quantidade_mensal || 1}x/mês)</span>
+                            </div>
+                            <div class="text-[11px] text-slate-500">
+                                <span class="font-semibold text-slate-700">${p.fabricante}</span> • 
+                                <span class="font-medium text-purple-700">${p.categoria || 'Genérico'}</span> • 
+                                <span>${p.apresentacao}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
+                            <button onclick="selecionarMedicamento('${p.produto_id}')" class="text-[11px] bg-cyan-600 hover:bg-cyan-700 text-white font-bold px-2.5 py-1 rounded-lg shadow-xs flex items-center gap-1">
+                                <i class="fa-solid fa-eye text-[10px]"></i> Ver
+                            </button>
+                            <button onclick="abrirModalEdicao('${p.produto_id}')" class="text-[11px] bg-amber-500 hover:bg-amber-600 text-white font-bold px-2.5 py-1 rounded-lg shadow-xs flex items-center gap-1" title="Editar dosagem, quantidade e dados">
+                                <i class="fa-solid fa-pen-to-square text-[10px]"></i> Editar
+                            </button>
+                            ${produtosCache.length > 1 ? `<button onclick="excluirMedicamento('${p.produto_id}')" class="text-rose-500 hover:text-rose-700 p-1 rounded" title="Excluir"><i class="fa-solid fa-trash-can text-xs"></i></button>` : ''}
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (err) {
+                container.innerHTML = `<div class="text-xs text-rose-500">Erro ao carregar itens: ${err.message}</div>`;
+            }
+        }
+
+        function selecionarMedicamento(id) {
+            document.getElementById("seletorMedicamento").value = id;
+            trocarMedicamento();
+            trocarAba("comparador");
+        }
+
+        function abrirModalEdicao(produtoId) {
+            const p = produtosCache.find(x => x.produto_id === produtoId);
+            if (!p) {
+                showToast("Item não encontrado!", "fa-circle-exclamation text-rose-400");
+                return;
+            }
+
+            document.getElementById("editProdutoId").value = p.produto_id;
+            document.getElementById("editNome").value = p.nome || "";
+            document.getElementById("editAtivo").value = p.principio_ativo || "";
+            document.getElementById("editDosagem").value = p.dosagem || "";
+            document.getElementById("editQuantidadeMensal").value = p.quantidade_mensal || 1;
+            document.getElementById("editApresentacao").value = p.apresentacao || "";
+            document.getElementById("editFabricante").value = p.fabricante || "";
+            document.getElementById("editCategoria").value = p.categoria || "Genérico";
+            document.getElementById("editEan").value = p.ean || "";
+            document.getElementById("editUrlPacheco").value = p.url_pacheco || "";
+            document.getElementById("editUrlVenancio").value = p.url_venancio || "";
+            document.getElementById("editUrlDrogasmil").value = p.url_drogasmil || "";
+            document.getElementById("editUrlRaia").value = p.url_raia || "";
+
+            const modal = document.getElementById("modalEditarProduto");
+            if (modal) modal.classList.remove("hidden");
+        }
+
+        function fecharModalEdicao() {
+            const modal = document.getElementById("modalEditarProduto");
+            if (modal) modal.classList.add("hidden");
+        }
+
+        async function salvarEdicaoProduto(e) {
+            e.preventDefault();
+            const btn = document.getElementById("btnSalvarEdicao");
+            btn.disabled = true;
+
+            const prodId = document.getElementById("editProdutoId").value;
+            const dados = {
+                nome: document.getElementById("editNome").value.trim(),
+                principio_ativo: document.getElementById("editAtivo").value.trim(),
+                dosagem: document.getElementById("editDosagem").value.trim(),
+                quantidade_mensal: parseInt(document.getElementById("editQuantidadeMensal").value || "1"),
+                apresentacao: document.getElementById("editApresentacao").value.trim(),
+                fabricante: document.getElementById("editFabricante").value.trim(),
+                categoria: document.getElementById("editCategoria").value,
+                ean: document.getElementById("editEan").value.trim(),
+                url_pacheco: document.getElementById("editUrlPacheco").value.trim(),
+                url_venancio: document.getElementById("editUrlVenancio").value.trim(),
+                url_drogasmil: document.getElementById("editUrlDrogasmil").value.trim(),
+                url_raia: document.getElementById("editUrlRaia").value.trim()
+            };
+
+            try {
+                const res = await fetch(`/api/produtos/${prodId}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(dados)
+                });
+                const resData = await res.json();
+                if (resData.sucesso) {
+                    showToast("Dosagem e dados atualizados com sucesso!", "fa-circle-check text-emerald-400");
+                    fecharModalEdicao();
+                    await carregarListaMedicamentos();
+                    carregarCestaMensal();
+                    if (produtoAtivoId === prodId) {
+                        trocarMedicamento();
+                    }
+                } else {
+                    showToast("Erro ao salvar: " + (resData.erro || "Verifique os dados."), "fa-circle-xmark text-rose-400");
+                }
+            } catch (err) {
+                showToast("Erro de rede ao editar item.", "fa-circle-xmark text-rose-400");
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function salvarNovoMedicamento(e) {
+            e.preventDefault();
+            const btn = document.getElementById("btnSalvarProd");
+            btn.disabled = true;
+
+            const dados = {
+                nome: document.getElementById("cadNome").value.trim(),
+                principio_ativo: document.getElementById("cadAtivo").value.trim(),
+                dosagem: document.getElementById("cadDosagem").value.trim(),
+                apresentacao: document.getElementById("cadApresentacao").value.trim(),
+                fabricante: document.getElementById("cadFabricante").value.trim(),
+                categoria: document.getElementById("cadCategoria").value,
+                quantidade_mensal: parseInt(document.getElementById("cadQtdMensal").value || "1"),
+                ean: document.getElementById("cadEan").value.trim(),
+                url_pacheco: document.getElementById("cadUrlPacheco").value.trim(),
+                url_venancio: document.getElementById("cadUrlVenancio").value.trim(),
+                url_drogasmil: document.getElementById("cadUrlDrogasmil").value.trim(),
+                url_raia: document.getElementById("cadUrlRaia").value.trim()
+            };
+
+            try {
+                const res = await fetch("/api/produtos", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(dados)
+                });
+                const resData = await res.json();
+                if (resData.sucesso) {
+                    showToast("Cadastrado e incluído no monitoramento com sucesso!", "fa-circle-check text-emerald-400");
+                    document.getElementById("formNovoMedicamento").reset();
+                    await carregarListaMedicamentos();
+                    carregarCestaMensal();
+                    selecionarMedicamento(resData.produto.produto_id);
+                } else {
+                    showToast("Erro ao cadastrar: " + (resData.erro || ""), "fa-circle-xmark text-rose-400");
+                }
+            } catch (err) {
+                showToast("Erro de conexão ao cadastrar item.", "fa-circle-xmark text-rose-400");
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function excluirMedicamento(id) {
+            if (!confirm("Deseja realmente remover este item da lista de monitoramento?")) return;
+            try {
+                await fetch(`/api/produtos/${id}`, { method: "DELETE" });
+                showToast("Item removido do monitoramento.", "fa-circle-check text-slate-400");
+                await carregarListaMedicamentos();
+                carregarCestaMensal();
+                trocarMedicamento();
+            } catch (err) {
+                showToast("Erro ao excluir item.", "fa-circle-xmark text-rose-400");
+            }
+        }
+
+        // ==========================================
+        // DROGA RAIA: UPLOAD DE PRINTS, OCR E POLÍTICA DE 3 DIAS
+        // ==========================================
+        function tratarDragOver(e) {
+            e.preventDefault();
+            const el = document.getElementById("dropzonePrint");
+            if (el) el.classList.add("border-rose-500", "bg-rose-50/60");
+        }
+
+        function tratarDragLeave(e) {
+            e.preventDefault();
+            const el = document.getElementById("dropzonePrint");
+            if (el) el.classList.remove("border-rose-500", "bg-rose-50/60");
+        }
+
+        function tratarDrop(e) {
+            e.preventDefault();
+            const el = document.getElementById("dropzonePrint");
+            if (el) el.classList.remove("border-rose-500", "bg-rose-50/60");
+            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                enviarPrintArquivo(e.dataTransfer.files[0]);
+            }
+        }
+
+        function tratarArquivoSelecionado(e) {
+            if (e.target && e.target.files && e.target.files.length > 0) {
+                enviarPrintArquivo(e.target.files[0]);
+            }
+        }
+
+        // Listener global de Paste (Ctrl+V) para capturas de tela instantâneas
+        window.addEventListener("paste", (e) => {
+            if (!e.clipboardData || !e.clipboardData.items) return;
+            for (let i = 0; i < e.clipboardData.items.length; i++) {
+                const item = e.clipboardData.items[i];
+                if (item.type.indexOf("image") !== -1) {
+                    const blob = item.getAsFile();
+                    if (blob) {
+                        trocarAba("raia");
+                        showToast("Print detectado na área de transferência (Ctrl+V)!", "fa-paste text-rose-400");
+                        enviarPrintArquivo(blob);
+                        break;
+                    }
+                }
+            }
+        });
+
+        async function enviarPrintArquivo(file) {
+            if (!file) return;
+            if (!file.type.startsWith("image/")) {
+                showToast("Por favor, selecione uma imagem válida (PNG, JPG, WEBP).", "fa-circle-exclamation text-rose-400");
+                return;
+            }
+
+            const loading = document.getElementById("loadingOcr");
+            const cardConfirmacao = document.getElementById("cardConfirmacaoOcr");
+            const prodHint = document.getElementById("raiaUploadMedicamento").value;
+
+            if (loading) loading.classList.remove("hidden");
+            if (cardConfirmacao) cardConfirmacao.classList.add("hidden");
+
+            const formData = new FormData();
+            formData.append("file", file);
+            if (prodHint) formData.append("produto_id", prodHint);
+
+            try {
+                showToast("Enviando print e executando OCR nativo...", "fa-spinner fa-spin text-cyan-400");
+                const res = await fetch("/api/raia/upload-print", {
+                    method: "POST",
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (!data.sucesso) {
+                    showToast("Não foi possível analisar o print. Tente outra imagem.", "fa-circle-xmark text-rose-400");
+                    return;
+                }
+
+                // Preencher card de confirmação com dados detectados
+                document.getElementById("ocrProdutoId").value = data.produto_id;
+                document.getElementById("ocrUrlComprovante").value = data.url_comprovante;
+                document.getElementById("previewMiniaturaPrint").src = data.url_comprovante;
+                
+                const p = produtosCache.find(x => x.produto_id === data.produto_id) || { nome: data.produto_nome, dosagem: "" };
+                document.getElementById("ocrNomeMedicamento").innerText = `${p.nome} ${p.dosagem} (${data.produto_id})`;
+                
+                if (data.preco_unitario_sugerido) {
+                    document.getElementById("ocrPrecoUnitario").value = Number(data.preco_unitario_sugerido).toFixed(2);
+                } else {
+                    document.getElementById("ocrPrecoUnitario").value = "";
+                }
+                
+                document.getElementById("ocrLaboratorio").value = data.laboratorio_sugerido || "Droga Raia";
+                
+                // Promoção
+                const checkPromo = document.getElementById("ocrTemPromo");
+                const camposPromo = document.getElementById("ocrCamposPromo");
+                if (data.promocao_qtd && data.promocao_preco) {
+                    checkPromo.checked = true;
+                    camposPromo.classList.remove("hidden");
+                    document.getElementById("ocrQtdPromo").value = data.promocao_qtd;
+                    document.getElementById("ocrPrecoPromo").value = Number(data.promocao_preco).toFixed(2);
+                } else {
+                    checkPromo.checked = false;
+                    camposPromo.classList.add("hidden");
+                    document.getElementById("ocrQtdPromo").value = "4";
+                    document.getElementById("ocrPrecoPromo").value = "";
+                }
+
+                if (cardConfirmacao) {
+                    cardConfirmacao.classList.remove("hidden");
+                    cardConfirmacao.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                }
+
+                showToast("Print lido com sucesso! Confira e confirme o valor.", "fa-circle-check text-emerald-400");
+
+            } catch (err) {
+                showToast("Erro ao processar o print: " + err.message, "fa-circle-xmark text-rose-400");
+            } finally {
+                if (loading) loading.classList.add("hidden");
+            }
+        }
+
+        function togglePromoOcr() {
+            const check = document.getElementById("ocrTemPromo").checked;
+            const campos = document.getElementById("ocrCamposPromo");
+            if (check) campos.classList.remove("hidden");
+            else campos.classList.add("hidden");
+        }
+
+        async function confirmarPrecoOcr(e) {
+            e.preventDefault();
+            const btn = document.getElementById("btnConfirmarOcr");
+            btn.disabled = true;
+
+            const prodId = document.getElementById("ocrProdutoId").value;
+            const precoUnit = parseFloat(document.getElementById("ocrPrecoUnitario").value);
+            const lab = document.getElementById("ocrLaboratorio").value;
+            const estoque = document.getElementById("ocrEstoque").value;
+            const urlComprovante = document.getElementById("ocrUrlComprovante").value;
+            
+            const temPromo = document.getElementById("ocrTemPromo").checked;
+            const qtdPromo = parseInt(document.getElementById("ocrQtdPromo").value || "1");
+            const precoPromo = parseFloat(document.getElementById("ocrPrecoPromo").value || "0");
+
+            const payload = {
+                produto_id: prodId,
+                preco_comum: precoUnit,
+                laboratorio: lab,
+                estoque: estoque,
+                tem_promo: temPromo,
+                qtd_promo: qtdPromo,
+                preco_promo: precoPromo,
+                url_comprovante: urlComprovante,
+                observacoes: "Cotação via Print OCR (vigência de 3 dias)."
+            };
+
+            try {
+                const res = await fetch("/api/raia/confirmar-preco", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (data.sucesso) {
+                    showToast("Cotação da Droga Raia salva com validade de 3 dias!", "fa-circle-check text-emerald-400");
+                    document.getElementById("cardConfirmacaoOcr").classList.add("hidden");
+                    await carregarStatusPrintsRaia();
+                    carregarCestaMensal();
+                    atualizarComparacao();
+                } else {
+                    showToast("Erro ao registrar cotação.", "fa-circle-xmark text-rose-400");
+                }
+            } catch (err) {
+                showToast("Erro de conexão ao salvar cotação.", "fa-circle-xmark text-rose-400");
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function carregarStatusPrintsRaia() {
+            const container = document.getElementById("listaStatusRaia");
+            if (!container) return;
+            container.innerHTML = `<div class="text-center py-6 text-slate-400"><i class="fa-solid fa-spinner fa-spin text-lg mb-1.5"></i><p>Verificando validade de 3 dias de cada print...</p></div>`;
+
+            try {
+                const res = await fetch("/api/raia/status");
+                const lista = await res.json();
+
+                if (!lista || lista.length === 0) {
+                    container.innerHTML = `<div class="text-center py-6 text-slate-500">Nenhum medicamento encontrado.</div>`;
+                    return;
+                }
+
+                // Atualizar badge da aba Droga Raia
+                const expiradosCount = lista.filter(x => x.expirado).length;
+                const tabBadge = document.getElementById("tabBadgeRaia");
+                const mobBadge = document.getElementById("mobtabBadgeRaia");
+                if (tabBadge) {
+                    if (expiradosCount > 0) {
+                        tabBadge.innerText = expiradosCount;
+                        tabBadge.classList.remove("hidden");
+                    } else {
+                        tabBadge.classList.add("hidden");
+                    }
+                }
+                if (mobBadge) {
+                    if (expiradosCount > 0) mobBadge.classList.remove("hidden");
+                    else mobBadge.classList.add("hidden");
+                }
+
+                container.innerHTML = "";
+                lista.forEach(item => {
+                    const card = document.createElement("div");
+                    card.className = "bg-slate-50 hover:bg-white rounded-xl border border-slate-200 p-3.5 transition shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3";
+
+                    let badgeStatus = "";
+                    if (item.status_tipo === "valido") {
+                        badgeStatus = `<span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300"><i class="fa-solid fa-circle-check"></i> Válido por mais ${item.dias_restantes}d</span>`;
+                    } else if (item.status_tipo === "vencendo") {
+                        badgeStatus = `<span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-300 animate-pulse"><i class="fa-solid fa-clock"></i> Vence em ${item.horas_restantes}h</span>`;
+                    } else if (item.status_tipo === "expirado") {
+                        const diasExp = Math.max(0.1, item.dias_decorridos - 3).toFixed(1);
+                        badgeStatus = `<span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 border border-rose-300 font-extrabold"><i class="fa-solid fa-triangle-exclamation"></i> Expirado há ${diasExp}d</span>`;
+                    } else {
+                        badgeStatus = `<span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-200 text-slate-700 border border-slate-300"><i class="fa-regular fa-image"></i> Sem print</span>`;
+                    }
+
+                    const infoPreco = item.tem_cotacao ? 
+                        `<strong>${formatarMoeda(item.preco_por_caixa)}</strong> <span class="text-[10px] text-slate-500 font-normal">(${item.laboratorio || 'Marca'})</span>` : 
+                        `<span class="text-slate-400">Pendente de print</span>`;
+
+                    const dataUploadInfo = item.data_upload ? 
+                        `Último print: <span class="font-medium text-slate-700">${item.data_upload}</span>` : 
+                        `Nenhum print enviado`;
+
+                    let btnComprovante = "";
+                    if (item.url_comprovante && item.url_comprovante.includes("/prints/raia/")) {
+                        btnComprovante = `<button onclick="abrirModalPrint('${item.url_comprovante}', 'Comprovante — ${item.nome}')" class="text-xs bg-white hover:bg-slate-100 text-slate-700 font-semibold px-2.5 py-1 rounded-lg border border-slate-200 transition flex items-center gap-1 shadow-xs"><i class="fa-regular fa-image text-rose-600"></i> Ver Print</button>`;
+                    }
+
+                    card.innerHTML = `
+                        <div class="flex items-start gap-3">
+                            <div class="w-9 h-9 rounded-xl ${item.expirado ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'} flex items-center justify-center text-sm font-bold shrink-0 mt-0.5">
+                                <i class="${item.expirado ? 'fa-solid fa-clock-rotate-left' : 'fa-solid fa-check'}"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h4 class="font-bold text-slate-900 text-xs sm:text-sm">${item.nome} ${item.dosagem}</h4>
+                                    ${badgeStatus}
+                                </div>
+                                <div class="text-[11px] text-slate-500 mt-0.5 flex items-center gap-2 flex-wrap">
+                                    <span>Preço Raia: ${infoPreco}</span>
+                                    <span>•</span>
+                                    <span>${dataUploadInfo}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                            ${btnComprovante}
+                            <button onclick="selecionarMedicamentoParaPrint('${item.produto_id}')" class="text-xs ${item.expirado ? 'bg-rose-600 hover:bg-rose-700 text-white' : 'bg-slate-800 hover:bg-slate-900 text-white'} font-bold px-3 py-1.5 rounded-lg transition shadow-xs flex items-center gap-1.5 active:scale-95">
+                                <i class="fa-solid fa-camera"></i> ${item.expirado ? 'Renovar Print' : 'Novo Print'}
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+
+            } catch (err) {
+                container.innerHTML = `<div class="text-xs text-rose-500 py-4">Erro ao carregar status: ${err.message}</div>`;
+            }
+        }
+
+        function selecionarMedicamentoParaPrint(produtoId) {
+            const select = document.getElementById("raiaUploadMedicamento");
+            if (select) select.value = produtoId;
+            const dropzone = document.getElementById("dropzonePrint");
+            if (dropzone) {
+                dropzone.scrollIntoView({ behavior: "smooth", block: "center" });
+                dropzone.focus();
+            }
+            showToast("Medicamento selecionado para o upload do print!", "fa-hand-pointer text-cyan-400");
+        }
+
+        function abrirModalPrint(url, titulo) {
+            const modal = document.getElementById("modalVisualizarPrint");
+            const img = document.getElementById("modalPrintImg");
+            const tit = document.getElementById("modalPrintTitulo");
+            if (modal && img) {
+                img.src = url;
+                if (tit) tit.innerText = titulo || "Comprovante de Preço Droga Raia";
+                modal.classList.remove("hidden");
+            }
+        }
+
+        function fecharModalPrint() {
+            const modal = document.getElementById("modalVisualizarPrint");
+            if (modal) modal.classList.add("hidden");
+        }
+
+        function atualizarFilialPresencial() {
+            const drog = document.getElementById("presencialDrogaria").value;
+            document.getElementById("presencialFilial").value = filiaisMap[drog] || "Tijuca";
+        }
+
+        async function salvarPrecoPresencial(e) {
+            e.preventDefault();
+            const btn = document.getElementById("btnSalvarPresencial");
+            btn.disabled = true;
+
+            const drogaria = document.getElementById("presencialDrogaria").value;
+            const filial = document.getElementById("presencialFilial").value;
+            const precoUnit = parseFloat(document.getElementById("presencialPreco").value);
+            const qtd = parseInt(document.getElementById("presencialQtd").value);
+            const fonte = document.getElementById("presencialFonte").value;
+            const estoque = document.getElementById("presencialEstoque").value;
+            const cpf = document.getElementById("presencialCpf").checked;
+            const obs = document.getElementById("presencialObs").value;
+            const prodId = document.getElementById("seletorMedicamento").value || "MED001";
+
+            const total = Math.round(precoUnit * qtd * 100) / 100;
+            let textoObs = cpf ? "Preço com CPF cadastrado. " : "Sem benefício de CPF. ";
+            textoObs += `Forma de conferência: ${fonte}. ${obs}`;
+
+            try {
+                await fetch("/api/registrar", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        drogaria: drogaria,
+                        filial: filial,
+                        modalidade: "Loja física",
+                        condicao_preco: "Preço comum",
+                        valor_total: total,
+                        quantidade_caixas: qtd,
+                        frete: 0.0,
+                        estoque: estoque,
+                        fonte: fonte,
+                        url: "",
+                        observacoes: textoObs,
+                        produto_id: prodId
+                    })
+                });
+
+                showToast("Preço presencial salvo com sucesso!", "fa-circle-check text-emerald-400");
+                document.getElementById("formPresencial").reset();
+                atualizarFilialPresencial();
+                trocarAba("comparador");
+                atualizarComparacao();
+            } catch (err) {
+                showToast("Erro ao registrar.", "fa-circle-xmark text-rose-400");
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function carregarHistoricoTabela() {
+            const tbody = document.getElementById("tabelaHistoricoBody");
+            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-slate-400"><i class="fa-solid fa-spinner fa-spin"></i> Carregando...</td></tr>`;
+
+            try {
+                const prodId = document.getElementById("seletorMedicamento").value;
+                const res = await fetch(`/api/historico?produto_id=${prodId}`);
+                const data = await res.json();
+                if (!data.registros || data.registros.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-slate-500">Histórico vazio para este medicamento.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = "";
+                data.registros.forEach(r => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td class="px-3 py-2 text-slate-500 whitespace-nowrap">${r.data_hora}</td>
+                        <td class="px-3 py-2 font-bold text-slate-800">${r.drogaria}</td>
+                        <td class="px-3 py-2 text-[10px] text-slate-500">${r.filial}</td>
+                        <td class="px-3 py-2">${r.modalidade}</td>
+                        <td class="px-3 py-2">${r.condicao_preco}</td>
+                        <td class="px-3 py-2 text-right font-semibold">${formatarMoeda(r.custo_por_caixa)}</td>
+                        <td class="px-3 py-2 text-center">${r.quantidade_caixas}</td>
+                        <td class="px-3 py-2 text-right font-bold text-slate-900">${formatarMoeda(r.valor_total)}</td>
+                        <td class="px-3 py-2 text-slate-500">${r.fonte}</td>
+                        <td class="px-3 py-2 text-[10px] text-slate-500 max-w-xs truncate" title="${r.observacoes}">${r.observacoes}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-rose-500">Erro: ${err.message}</td></tr>`;
+            }
+        }
+
+        // ==========================================
+        // LISTA COMPLETA & SELEÇÃO DINÂMICA DE COMPRA MENSAL
+        // ==========================================
+        let cestaCache = null;
+        let itensSelecionadosCesta = new Set();
+
+        function salvarSelecaoCesta() {
+            try {
+                localStorage.setItem("farmapreco_cesta_selecionados", JSON.stringify([...itensSelecionadosCesta]));
+            } catch (e) {
+                console.warn("Não foi possível salvar seleção localmente:", e);
+            }
+        }
+
+        function toggleItemCesta(produtoId) {
+            if (itensSelecionadosCesta.has(produtoId)) {
+                itensSelecionadosCesta.delete(produtoId);
+            } else {
+                itensSelecionadosCesta.add(produtoId);
+            }
+            salvarSelecaoCesta();
+            recalcularTotaisCesta();
+        }
+
+        function marcarTodosCesta(marcar) {
+            if (!cestaCache || !cestaCache.itens) return;
+            if (marcar) {
+                cestaCache.itens.forEach(it => itensSelecionadosCesta.add(it.produto_id));
+            } else {
+                itensSelecionadosCesta.clear();
+            }
+            salvarSelecaoCesta();
+            recalcularTotaisCesta();
+        }
+
+        function toggleTodosCestaMaster() {
+            const chk = document.getElementById("checkMasterCesta");
+            if (chk) {
+                chk.checked = !chk.checked;
+                marcarTodosCesta(chk.checked);
+            }
+        }
+
+        function recalcularTotaisCesta() {
+            if (!cestaCache || !cestaCache.itens) return;
+
+            let totalOtimizado = 0;
+            let totalVenancio = 0;
+            let totalPacheco = 0;
+            let totalDrogasmil = 0;
+            let totalRaia = 0;
+            let countSelecionados = 0;
+
+            cestaCache.itens.forEach(it => {
+                const isSelected = itensSelecionadosCesta.has(it.produto_id);
+                const rowEl = document.getElementById(`rowCesta_${it.produto_id}`);
+                const chkEl = document.getElementById(`checkItem_${it.produto_id}`);
+
+                if (chkEl) chkEl.checked = isSelected;
+
+                if (rowEl) {
+                    if (isSelected) {
+                        rowEl.classList.remove("opacity-40", "bg-slate-50/60");
+                    } else {
+                        rowEl.classList.add("opacity-40", "bg-slate-50/60");
+                    }
+                }
+
+                if (isSelected) {
+                    countSelecionados++;
+
+                    // Preço Otimizado (Melhor farmácia com estoque)
+                    if (it.melhor_preco && it.melhor_preco > 0) {
+                        totalOtimizado += it.melhor_preco;
+                    }
+
+                    // Preços por farmácia individual
+                    const pV = it.precos_farmacias ? it.precos_farmacias["Drogaria Venancio"] : null;
+                    const pP = it.precos_farmacias ? it.precos_farmacias["Drogarias Pacheco"] : null;
+                    const pM = it.precos_farmacias ? it.precos_farmacias["Drogasmil"] : null;
+                    const pR = it.precos_farmacias ? it.precos_farmacias["Droga Raia"] : null;
+
+                    if (pV) totalVenancio += pV;
+                    if (pP) totalPacheco += pP;
+                    if (pM) totalDrogasmil += pM;
+                    if (pR) totalRaia += pR;
+                }
+            });
+
+            // Atualizar Badges de Seleção
+            const badgeCount = document.getElementById("badgeContadorSelecionados");
+            if (badgeCount) {
+                badgeCount.innerText = `${countSelecionados} de ${cestaCache.itens.length} selecionados`;
+            }
+
+            const chkMaster = document.getElementById("checkMasterCesta");
+            if (chkMaster) {
+                chkMaster.checked = countSelecionados === cestaCache.itens.length && countSelecionados > 0;
+                chkMaster.indeterminate = countSelecionados > 0 && countSelecionados < cestaCache.itens.length;
+            }
+
+            // Atualizar Cards de Resumo Mensal com a Soma Exclusiva dos Selecionados
+            document.getElementById("cestaTotalOtimizado").innerText = formatarMoeda(totalOtimizado);
+            document.getElementById("cestaTotalVenancio").innerText = totalVenancio > 0 ? formatarMoeda(totalVenancio) : (countSelecionados === 0 ? "R$ 0,00" : "—");
+            document.getElementById("cestaTotalPacheco").innerText = totalPacheco > 0 ? formatarMoeda(totalPacheco) : (countSelecionados === 0 ? "R$ 0,00" : "—");
+            document.getElementById("cestaTotalDrogasmil").innerText = totalDrogasmil > 0 ? formatarMoeda(totalDrogasmil) : (countSelecionados === 0 ? "R$ 0,00" : "—");
+            document.getElementById("cestaTotalRaia").innerText = totalRaia > 0 ? formatarMoeda(totalRaia) : (countSelecionados === 0 ? "R$ 0,00" : "—");
+
+            // Atualizar Rodapé da Tabela (tfoot)
+            const tfV = document.getElementById("tfootTotalVenancio");
+            const tfP = document.getElementById("tfootTotalPacheco");
+            const tfM = document.getElementById("tfootTotalDrogasmil");
+            const tfR = document.getElementById("tfootTotalRaia");
+            const tfO = document.getElementById("tfootTotalOtimizado");
+
+            if (tfV) tfV.innerText = formatarMoeda(totalVenancio);
+            if (tfP) tfP.innerText = formatarMoeda(totalPacheco);
+            if (tfM) tfM.innerText = formatarMoeda(totalDrogasmil);
+            if (tfR) tfR.innerText = formatarMoeda(totalRaia);
+            if (tfO) tfO.innerText = formatarMoeda(totalOtimizado);
+        }
+
+        async function carregarCestaMensal() {
+            const tbody = document.getElementById("tabelaCestaBody");
+            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-slate-400"><i class="fa-solid fa-spinner fa-spin text-lg mb-1.5"></i><p>Calculando totais da lista completa nas farmácias...</p></td></tr>`;
+
+            try {
+                const res = await fetch("/api/cesta-mensal");
+                const data = await res.json();
+                cestaCache = data;
+
+                if (!data.sucesso || !data.itens || data.itens.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-slate-500">Nenhum item na lista completa.</td></tr>`;
+                    return;
+                }
+
+                // Carregar itens selecionados salvos ou marcar todos por padrão
+                try {
+                    const saved = localStorage.getItem("farmapreco_cesta_selecionados");
+                    if (saved) {
+                        itensSelecionadosCesta = new Set(JSON.parse(saved));
+                    } else {
+                        itensSelecionadosCesta = new Set(data.itens.map(it => it.produto_id));
+                    }
+                } catch (e) {
+                    itensSelecionadosCesta = new Set(data.itens.map(it => it.produto_id));
+                }
+
+                document.getElementById("badgeTotalItensCesta").innerText = `${data.total_medicamentos} no total`;
+
+                // Alerta da Raia (> 3 dias)
+                const bannerAlerta = document.getElementById("bannerAlertaRaiaCesta");
+                const badgeRaiaCard = document.getElementById("badgeCestaStatusRaia");
+                if (data.tem_raia_expirada) {
+                    if (bannerAlerta) {
+                        bannerAlerta.classList.remove("hidden");
+                        document.getElementById("bannerAlertaRaiaTexto").innerText = `${data.raia_total_expirados} item(ns) com cotação da Droga Raia vencida (> 3 dias). Envie novos prints na aba "Droga Raia" para manter a precisão.`;
+                    }
+                    if (badgeRaiaCard) {
+                        badgeRaiaCard.className = "text-[9px] font-bold px-1.5 py-0.2 rounded bg-rose-100 text-rose-700 border border-rose-300";
+                        badgeRaiaCard.innerText = "Prints Expirados";
+                    }
+                } else {
+                    if (bannerAlerta) bannerAlerta.classList.add("hidden");
+                    if (badgeRaiaCard) {
+                        badgeRaiaCard.className = "text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-700 border border-emerald-300";
+                        badgeRaiaCard.innerText = "Prints em dia";
+                    }
+                }
+
+                tbody.innerHTML = "";
+                data.itens.forEach(it => {
+                    const tr = document.createElement("tr");
+                    tr.id = `rowCesta_${it.produto_id}`;
+                    tr.className = "hover:bg-slate-50/80 transition";
+
+                    const precoV = it.precos_farmacias ? it.precos_farmacias["Drogaria Venancio"] : null;
+                    const precoP = it.precos_farmacias ? it.precos_farmacias["Drogarias Pacheco"] : null;
+                    const precoM = it.precos_farmacias ? it.precos_farmacias["Drogasmil"] : null;
+                    const precoR = it.precos_farmacias ? it.precos_farmacias["Droga Raia"] : null;
+
+                    const detV = it.detalhes_farmacias ? it.detalhes_farmacias["Drogaria Venancio"] : null;
+                    const detP = it.detalhes_farmacias ? it.detalhes_farmacias["Drogarias Pacheco"] : null;
+                    const detM = it.detalhes_farmacias ? it.detalhes_farmacias["Drogasmil"] : null;
+                    const detR = it.detalhes_farmacias ? it.detalhes_farmacias["Droga Raia"] : null;
+
+                    const isVenWinner = it.melhor_farmacia === "Drogaria Venancio";
+                    const isPachWinner = it.melhor_farmacia === "Drogarias Pacheco";
+                    const isMilWinner = it.melhor_farmacia === "Drogasmil";
+                    const isRaiaWinner = it.melhor_farmacia === "Droga Raia";
+
+                    const tdVen = precoV ? `
+                        <div class="font-bold ${isVenWinner ? 'text-emerald-700' : 'text-slate-800'}">${formatarMoeda(precoV)}</div>
+                        ${it.quantidade_mensal > 1 ? `<div class="text-[10px] text-slate-400">(${it.quantidade_mensal}x ${formatarMoeda(detV ? detV.unitario : precoV / it.quantidade_mensal)})</div>` : ''}
+                        ${detV && detV.laboratorio ? `<div class="text-[9px] text-slate-500 font-medium">${detV.laboratorio}</div>` : ''}
+                    ` : `<span class="text-slate-400">—</span>`;
+
+                    const tdPach = precoP ? `
+                        <div class="font-bold ${isPachWinner ? 'text-emerald-700' : 'text-slate-800'}">${formatarMoeda(precoP)}</div>
+                        ${it.quantidade_mensal > 1 ? `<div class="text-[10px] text-slate-400">(${it.quantidade_mensal}x ${formatarMoeda(detP ? detP.unitario : precoP / it.quantidade_mensal)})</div>` : ''}
+                        ${detP && detP.laboratorio ? `<div class="text-[9px] text-slate-500 font-medium">${detP.laboratorio}</div>` : ''}
+                    ` : `<span class="text-slate-400">—</span>`;
+
+                    const tdMil = precoM ? `
+                        <div class="font-bold ${isMilWinner ? 'text-emerald-700' : 'text-slate-800'}">${formatarMoeda(precoM)}</div>
+                        ${it.quantidade_mensal > 1 ? `<div class="text-[10px] text-slate-400">(${it.quantidade_mensal}x ${formatarMoeda(detM ? detM.unitario : precoM / it.quantidade_mensal)})</div>` : ''}
+                        ${detM && detM.laboratorio ? `<div class="text-[9px] text-slate-500 font-medium">${detM.laboratorio}</div>` : ''}
+                    ` : `<span class="text-slate-400">—</span>`;
+
+                    let tdRaia = `<span class="text-slate-400">—</span>`;
+                    if (precoR) {
+                        const raiaExp = detR && detR.expirado_3dias;
+                        const raiaDias = detR ? detR.dias_desde_upload : 0;
+                        const statusTag = raiaExp ? 
+                            `<div class="text-[9px] text-rose-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Expirado (${raiaDias}d)</div>` :
+                            `<div class="text-[9px] text-emerald-600 font-semibold"><i class="fa-solid fa-check"></i> Válido (${raiaDias}d)</div>`;
+                            
+                        tdRaia = `
+                            <div class="font-bold ${isRaiaWinner ? 'text-emerald-700' : 'text-slate-800'}">${formatarMoeda(precoR)}</div>
+                            ${it.quantidade_mensal > 1 ? `<div class="text-[10px] text-slate-400">(${it.quantidade_mensal}x ${formatarMoeda(detR ? detR.unitario : precoR / it.quantidade_mensal)})</div>` : ''}
+                            ${detR && detR.laboratorio ? `<div class="text-[9px] text-slate-500 font-medium">${detR.laboratorio}</div>` : ''}
+                            ${statusTag}
+                        `;
+                    } else if (it.status_raia && it.status_raia.tem_cotacao) {
+                        tdRaia = `<div class="text-[10px] text-rose-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Print expirado</div>`;
+                    }
+
+                    const isChecked = itensSelecionadosCesta.has(it.produto_id);
+
+                    tr.innerHTML = `
+                        <td class="px-3.5 py-3 text-center bg-emerald-50/40 border-r border-slate-200">
+                            <input type="checkbox" id="checkItem_${it.produto_id}" onchange="toggleItemCesta('${it.produto_id}')" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer">
+                        </td>
+                        <td class="px-3.5 py-3">
+                            <div class="font-bold text-slate-900">${it.nome} <span class="text-cyan-800 font-black">${it.dosagem}</span></div>
+                            <div class="text-[10px] text-slate-500">${it.apresentacao} • <span class="text-purple-700 font-medium">${it.categoria || 'Geral'}</span></div>
+                        </td>
+                        <td class="px-3.5 py-3 text-center">
+                            <span class="inline-block ${it.quantidade_mensal > 1 ? 'bg-amber-100 text-amber-900 border border-amber-200' : 'bg-emerald-100 text-emerald-800'} font-bold px-2 py-0.5 rounded text-xs">
+                                ${it.quantidade_mensal} un / mês
+                            </span>
+                        </td>
+                        <td class="px-3.5 py-3 font-medium text-slate-700">
+                            <div class="font-semibold text-slate-900 text-xs">${it.fabricante}</div>
+                        </td>
+                        <td class="px-3.5 py-3 text-right ${isVenWinner ? 'bg-emerald-50/70 border-l border-r border-emerald-100' : ''}">
+                            ${tdVen}
+                        </td>
+                        <td class="px-3.5 py-3 text-right ${isPachWinner ? 'bg-emerald-50/70 border-l border-r border-emerald-100' : ''}">
+                            ${tdPach}
+                        </td>
+                        <td class="px-3.5 py-3 text-right ${isMilWinner ? 'bg-emerald-50/70 border-l border-r border-emerald-100' : ''}">
+                            ${tdMil}
+                        </td>
+                        <td class="px-3.5 py-3 text-right ${isRaiaWinner ? 'bg-emerald-50/70 border-l border-r border-emerald-100' : ''}">
+                            ${tdRaia}
+                        </td>
+                        <td class="px-3.5 py-3 text-center">
+                            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-full shadow-xs">
+                                <i class="fa-solid fa-trophy text-[10px] text-amber-500"></i> ${it.melhor_farmacia}
+                            </span>
+                        </td>
+                        <td class="px-3.5 py-3 text-center">
+                            <div class="flex items-center justify-center gap-1.5">
+                                <button onclick="selecionarMedicamento('${it.produto_id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded-lg transition" title="Ver no comparador">
+                                    Comparar
+                                </button>
+                                <button onclick="abrirModalEdicao('${it.produto_id}')" class="text-xs bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-2 py-1 rounded-lg transition" title="Editar dosagem ou quantidade">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                // Executar o recálculo imediato com base na seleção
+                recalcularTotaisCesta();
+
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-rose-500">Erro ao carregar lista completa: ${err.message}</td></tr>`;
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            await carregarListaMedicamentos();
+            carregarCestaMensal();
+            atualizarComparacao();
+            carregarStatusPrintsRaia();
+        });
+    </script>
+</body>
+</html>
