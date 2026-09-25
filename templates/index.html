@@ -1369,66 +1369,59 @@
             </div>
 
             <div class="mt-4 space-y-4">
-                <!-- Botão de Instalação Rápida 1-Click PWA -->
-                <button id="btnInstalarPwaModal" onclick="acionarInstalacaoPWA()" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition active:scale-95">
-                    <i class="fa-solid fa-cloud-arrow-down text-base"></i>
-                    <span>Instalar FarmaPreço como Aplicativo</span>
-                </button>
-
-                <!-- IP Local & QR Code -->
-                <div class="bg-gradient-to-br from-cyan-50 to-emerald-50 border border-cyan-200/70 rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4">
-                    <div class="bg-white p-2 rounded-xl shadow-sm border border-slate-200 flex-shrink-0 text-center">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=http://192.168.15.9:8000" alt="QR Code FarmaPreço" class="w-28 h-28 rounded-lg mx-auto" onerror="this.src='/static/icons/icon-192.png'">
-                        <span class="text-[9px] text-slate-400 block mt-1 font-medium">Aponte a câmera</span>
-                    </div>
-                    <div class="space-y-1.5 text-center sm:text-left">
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-800 bg-cyan-200/60 px-2 py-0.5 rounded">Rede Wi-Fi Local</span>
-                        <div class="text-xs text-slate-700 font-semibold">Endereço direto do seu servidor:</div>
-                        <div class="bg-white px-3 py-1.5 rounded-lg border border-slate-200 font-mono text-xs font-bold text-slate-900 select-all flex items-center justify-between gap-2">
-                            <span id="txtLinkApp">http://192.168.15.9:8000</span>
-                            <button onclick="copiarLinkApp()" class="text-cyan-600 hover:text-cyan-800 text-xs" title="Copiar"><i class="fa-regular fa-copy"></i></button>
-                        </div>
-                        <p class="text-[11px] text-slate-500">Conecte o smartphone no mesmo Wi-Fi de casa e acesse pelo navegador.</p>
+                <!-- Explicação do Aviso do Chrome -->
+                <div class="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 flex items-start gap-2.5">
+                    <i class="fa-solid fa-shield-halved text-amber-600 text-base flex-shrink-0 mt-0.5"></i>
+                    <div>
+                        <strong class="block font-bold">Por que o Chrome mostrou "Não é possível instalar"?</strong>
+                        <p class="text-[11px] text-amber-800 mt-0.5">
+                            O Google Chrome no Android exige <strong>conexão segura HTTPS</strong> para transformar um site em aplicativo instalado (WebAPK). No endereço HTTP local (192.168...), ele bloqueia "Instalar", mas libera <strong>"Criar atalho"</strong>.
+                        </p>
                     </div>
                 </div>
 
-                <!-- Abas Instruções iOS / Android / Flutter -->
-                <div class="space-y-3">
-                    <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
-                        <div class="font-bold text-xs text-slate-900 flex items-center gap-2">
-                            <i class="fa-brands fa-apple text-slate-800 text-sm"></i>
-                            <span>iPhone (Safari) — Como Instalar:</span>
-                        </div>
-                        <ol class="text-[11px] text-slate-600 list-decimal list-inside space-y-1 pl-1">
-                            <li>Abra o link acima no <strong>Safari</strong> do iPhone.</li>
-                            <li>Toque no botão <strong>Compartilhar</strong> (ícone do quadrado com a seta para cima).</li>
-                            <li>Role para baixo e selecione <strong>"Adicionar à Tela de Início"</strong>.</li>
-                            <li>Pronto! Ele funciona como um aplicativo em tela cheia com acesso à câmera para prints!</li>
-                        </ol>
+                <!-- OPÇÃO 1: LINK SEGURO HTTPS (INSTALAÇÃO DIRETA COMO APP) -->
+                <div class="bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-300 rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4">
+                    <div class="bg-white p-2 rounded-xl shadow-sm border border-emerald-200 flex-shrink-0 text-center">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https://sufficient-gas-rates-irc.trycloudflare.com" alt="QR Code HTTPS FarmaPreço" class="w-28 h-28 rounded-lg mx-auto" onerror="this.src='/static/icons/icon-192.png'">
+                        <span class="text-[9px] text-emerald-700 block mt-1 font-bold">Aponte a câmera</span>
                     </div>
-
-                    <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
-                        <div class="font-bold text-xs text-slate-900 flex items-center gap-2">
-                            <i class="fa-brands fa-android text-emerald-600 text-sm"></i>
-                            <span>Android (Chrome) — Como Instalar:</span>
+                    <div class="space-y-1.5 text-center sm:text-left flex-1 min-w-0">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-200/80 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                            <i class="fa-solid fa-lock text-[9px]"></i> Link Seguro HTTPS (Recomendado)
+                        </span>
+                        <div class="text-xs text-slate-800 font-bold">Acesse este link no celular para instalar como App:</div>
+                        <div class="bg-white px-3 py-1.5 rounded-lg border border-emerald-300 font-mono text-[11px] font-bold text-emerald-900 select-all flex items-center justify-between gap-2 overflow-hidden">
+                            <span class="truncate">https://sufficient-gas-rates-irc.trycloudflare.com</span>
+                            <button onclick="navigator.clipboard.writeText('https://sufficient-gas-rates-irc.trycloudflare.com'); showToast('Link copiado!', 'fa-copy text-emerald-400');" class="text-emerald-700 hover:text-emerald-900 text-xs flex-shrink-0" title="Copiar"><i class="fa-regular fa-copy"></i></button>
                         </div>
-                        <ol class="text-[11px] text-slate-600 list-decimal list-inside space-y-1 pl-1">
-                            <li>Abra o link acima no <strong>Google Chrome</strong> do celular.</li>
-                            <li>Toque no menu (<strong>3 pontinhos</strong>) no canto superior direito.</li>
-                            <li>Toque em <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela inicial"</strong>.</li>
-                            <li>O app aparecerá na gaveta de aplicativos com ícone próprio e navegação rápida!</li>
-                        </ol>
-                    </div>
-
-                    <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
-                        <div class="font-bold text-xs text-slate-900 flex items-center gap-2">
-                            <i class="fa-solid fa-mobile text-cyan-600 text-sm"></i>
-                            <span>Código Nativo Flutter (iOS & Android):</span>
-                        </div>
-                        <p class="text-[11px] text-slate-600">
-                            A pasta <code class="bg-slate-200 text-slate-800 px-1 py-0.5 rounded text-[10px]">app_mobile/</code> no diretório do projeto contém o código completo em Flutter pronto para compilar ou rodar no seu celular.
+                        <p class="text-[11px] text-emerald-800">
+                            ✓ Funciona no Wi-Fi e no 4G/5G.<br>
+                            ✓ Libera o botão <strong>"Instalar aplicativo"</strong> no Chrome!
                         </p>
                     </div>
+                </div>
+
+                <!-- OPÇÃO 2: SE PREFERIR FICAR NO IP LOCAL HTTP -->
+                <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                    <div class="font-bold text-xs text-slate-900 flex items-center gap-2">
+                        <i class="fa-brands fa-android text-emerald-600 text-sm"></i>
+                        <span>No link atual (192.168.15.9): Como criar o ícone na tela inicial</span>
+                    </div>
+                    <p class="text-[11px] text-slate-600">
+                        Na janela que abriu no seu celular, toque na segunda opção: <strong>"Criar atalho"</strong> (ao lado do ícone do FarmaPreço). Ele adicionará o ícone do aplicativo na tela inicial do seu celular imediatamente!
+                    </p>
+                </div>
+
+                <!-- Instruções iPhone -->
+                <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
+                    <div class="font-bold text-xs text-slate-900 flex items-center gap-2">
+                        <i class="fa-brands fa-apple text-slate-800 text-sm"></i>
+                        <span>No iPhone (Safari):</span>
+                    </div>
+                    <p class="text-[11px] text-slate-600">
+                        Abra o link pelo Safari, toque no botão <strong>Compartilhar</strong> (ícone com seta para cima) e escolha <strong>"Adicionar à Tela de Início"</strong>.
+                    </p>
                 </div>
             </div>
 
