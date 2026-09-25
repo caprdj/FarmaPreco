@@ -51,9 +51,9 @@
 
             <!-- Header Quick Actions -->
             <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-                <button onclick="abrirModalApp()" class="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white font-bold px-3 py-2 rounded-xl text-xs border border-white/30 transition-all shadow-sm active:scale-95">
+                <button onclick="acionarInstalacaoPWA()" class="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white font-bold px-3 py-2 rounded-xl text-xs border border-white/30 transition-all shadow-sm active:scale-95">
                     <i class="fa-solid fa-mobile-screen-button text-emerald-300"></i>
-                    <span>App Celular</span>
+                    <span>App / Instalar</span>
                 </button>
                 <button onclick="coletarAutomatico()" id="btnColetarGeral" class="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3 py-2 rounded-xl text-xs shadow transition-all active:scale-95">
                     <i class="fa-solid fa-rotate" id="iconColetaGeral"></i>
@@ -115,7 +115,7 @@
         <!-- Navigation Tabs (5 Abas Fixas) -->
         <div class="flex border-b border-slate-200 mb-5 space-x-1 sm:space-x-3 overflow-x-auto text-xs sm:text-sm font-medium">
             <button onclick="trocarAba('cesta')" id="tab-cesta" class="tab-btn pb-3 px-3 text-cyan-700 border-b-2 border-cyan-600 font-bold flex items-center gap-1.5 whitespace-nowrap">
-                <i class="fa-solid fa-list-check text-emerald-600"></i> Lista completa
+                <i class="fa-solid fa-list-check text-emerald-600"></i> Lista de compras
             </button>
             <button onclick="trocarAba('comparador')" id="tab-comparador" class="tab-btn pb-3 px-3 text-slate-500 hover:text-slate-800 border-b-2 border-transparent flex items-center gap-1.5 whitespace-nowrap">
                 <i class="fa-solid fa-chart-line text-cyan-600"></i> Comparador de Farmácias
@@ -233,13 +233,7 @@
                     <table class="w-full text-left text-xs text-slate-600 border-separate border-spacing-0">
                         <thead class="bg-slate-100/80 text-slate-700 uppercase text-[11px] font-bold border-b border-slate-200">
                             <tr>
-                                <th class="sticky left-0 z-30 bg-slate-100 px-3.5 py-3 text-center whitespace-nowrap border-r border-b border-slate-200 w-12 min-w-[50px] max-w-[50px]">
-                                    <div class="flex items-center justify-center gap-1.5 cursor-pointer" onclick="toggleTodosCestaMaster()">
-                                        <input type="checkbox" id="checkMasterCesta" onchange="marcarTodosCesta(this.checked)" checked class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer">
-                                        <span class="text-[10px] font-black text-emerald-900">Comprar</span>
-                                    </div>
-                                </th>
-                                <th class="sticky left-[50px] z-30 bg-slate-100 px-3.5 py-2.5 min-w-[175px] max-w-[220px] shadow-[3px_0_6px_-2px_rgba(0,0,0,0.12)] border-r border-b border-slate-200">Medicamento / Produto</th>
+                                <th class="sticky left-0 z-30 bg-slate-100 px-3.5 py-2.5 min-w-[175px] max-w-[220px] shadow-[3px_0_6px_-2px_rgba(0,0,0,0.12)] border-r border-b border-slate-200">Medicamento / Produto</th>
                                 <th class="px-3 py-2.5 text-center border-b border-slate-200">Consumo Mensal</th>
                                 <th class="px-3.5 py-2.5 border-b border-slate-200">Laboratório / Marca</th>
                                 <th class="px-3 py-2.5 text-right border-b border-slate-200">Drogaria Venancio</th>
@@ -248,17 +242,22 @@
                                 <th class="px-3 py-2.5 text-right border-b border-slate-200">Droga Raia (Prints 3d)</th>
                                 <th class="px-3 py-2.5 text-center border-b border-slate-200">Melhor Opção</th>
                                 <th class="px-3 py-2.5 text-center border-b border-slate-200">Ações</th>
+                                <th class="px-3.5 py-3 text-center whitespace-nowrap bg-emerald-50/80 border-b border-slate-200 min-w-[130px]">
+                                    <div class="flex items-center justify-center gap-1.5 cursor-pointer" onclick="toggleTodosCestaMaster()">
+                                        <input type="checkbox" id="checkMasterCesta" onchange="marcarTodosCesta(this.checked)" checked class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer">
+                                        <span class="text-[10px] font-black text-emerald-900 uppercase">Comprar no Mês</span>
+                                    </div>
+                                </th>
                             </tr>
                         </thead>
                         <tbody id="tabelaCestaBody" class="divide-y divide-slate-100">
                             <tr>
-                                <td colspan="10" class="text-center py-6 text-slate-400">Carregando lista completa de itens...</td>
+                                <td colspan="10" class="text-center py-6 text-slate-400">Carregando lista de compras...</td>
                             </tr>
                         </tbody>
                         <tfoot class="bg-slate-50 font-bold border-t-2 border-slate-200 text-slate-800">
                             <tr class="text-xs">
-                                <td class="sticky left-0 z-20 bg-slate-50 w-12 min-w-[50px] max-w-[50px] border-r border-slate-200"></td>
-                                <td colspan="3" class="sticky left-[50px] z-20 bg-slate-50 px-3.5 py-3 font-extrabold text-slate-900 uppercase shadow-[3px_0_6px_-2px_rgba(0,0,0,0.12)] border-r border-slate-200">
+                                <td colspan="3" class="sticky left-0 z-20 bg-slate-50 px-3.5 py-3 font-extrabold text-slate-900 uppercase shadow-[3px_0_6px_-2px_rgba(0,0,0,0.12)] border-r border-slate-200">
                                     <div class="flex items-center gap-2">
                                         <i class="fa-solid fa-calculator text-emerald-600"></i>
                                         <span class="whitespace-nowrap">Total dos Produtos Selecionados:</span>
@@ -270,6 +269,7 @@
                                 <td id="tfootTotalRaia" class="px-3 py-3 text-right font-black text-slate-900 border-t-2 border-slate-200">R$ 0,00</td>
                                 <td id="tfootTotalOtimizado" class="px-3 py-3 text-center font-black text-emerald-700 bg-emerald-100/70 rounded border border-emerald-200">R$ 0,00</td>
                                 <td class="border-t-2 border-slate-200"></td>
+                                <td class="border-t-2 border-slate-200 bg-emerald-50/40"></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -635,9 +635,9 @@
                         </div>
                         <div>
                             <h3 class="font-bold text-slate-900 text-xs sm:text-sm flex items-center gap-1.5">
-                                Comparativo entre Laboratórios & Genéricos para <span id="labIntegradoNomeMedicamento" class="text-purple-700 font-extrabold">—</span>
+                                Termômetro de Laboratórios & Genéricos (Base: Catálogo Venancio) para <span id="labIntegradoNomeMedicamento" class="text-purple-700 font-extrabold">—</span>
                             </h3>
-                            <p class="text-[11px] text-slate-500">Preços concorrentes entre o produto de Marca (Referência), Genéricos e Similares</p>
+                            <p class="text-[11px] text-slate-500">Comparativo de marcas concorrentes (Referência vs. Genéricos vs. Similares) com base no catálogo aberto da Drogaria Venancio</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
@@ -1369,6 +1369,12 @@
             </div>
 
             <div class="mt-4 space-y-4">
+                <!-- Botão de Instalação Rápida 1-Click PWA -->
+                <button id="btnInstalarPwaModal" onclick="acionarInstalacaoPWA()" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition active:scale-95">
+                    <i class="fa-solid fa-cloud-arrow-down text-base"></i>
+                    <span>Instalar FarmaPreço como Aplicativo</span>
+                </button>
+
                 <!-- IP Local & QR Code -->
                 <div class="bg-gradient-to-br from-cyan-50 to-emerald-50 border border-cyan-200/70 rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4">
                     <div class="bg-white p-2 rounded-xl shadow-sm border border-slate-200 flex-shrink-0 text-center">
@@ -1460,7 +1466,31 @@
 
     <!-- JavaScript Principal -->
     <script>
-        // Registrar Service Worker para PWA
+        // Registrar Service Worker & Suporte PWA (Instalação Direta)
+        let deferredPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const btnModal = document.getElementById("btnInstalarPwaModal");
+            if (btnModal) {
+                btnModal.classList.remove("hidden");
+                btnModal.classList.add("animate-pulse");
+            }
+        });
+
+        async function acionarInstalacaoPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const choice = await deferredPrompt.userChoice;
+                if (choice.outcome === 'accepted') {
+                    showToast("Instalando o aplicativo FarmaPreço!", "fa-circle-check text-emerald-400");
+                }
+                deferredPrompt = null;
+            } else {
+                abrirModalApp();
+            }
+        }
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js').then(reg => {
@@ -2592,6 +2622,7 @@
                 itensSelecionadosCesta.add(produtoId);
             }
             salvarSelecaoCesta();
+            renderizarTabelaCesta();
             recalcularTotaisCesta();
         }
 
@@ -2603,6 +2634,7 @@
                 itensSelecionadosCesta.clear();
             }
             salvarSelecaoCesta();
+            renderizarTabelaCesta();
             recalcularTotaisCesta();
         }
 
@@ -2626,18 +2658,6 @@
 
             cestaCache.itens.forEach(it => {
                 const isSelected = itensSelecionadosCesta.has(it.produto_id);
-                const rowEl = document.getElementById(`rowCesta_${it.produto_id}`);
-                const chkEl = document.getElementById(`checkItem_${it.produto_id}`);
-
-                if (chkEl) chkEl.checked = isSelected;
-
-                if (rowEl) {
-                    if (isSelected) {
-                        rowEl.classList.remove("opacity-40", "bg-slate-50/60");
-                    } else {
-                        rowEl.classList.add("opacity-40", "bg-slate-50/60");
-                    }
-                }
 
                 if (isSelected) {
                     countSelecionados++;
@@ -2693,9 +2713,135 @@
             if (tfO) tfO.innerText = formatarMoeda(totalOtimizado);
         }
 
+        function renderizarTabelaCesta() {
+            if (!cestaCache || !cestaCache.itens) return;
+            const tbody = document.getElementById("tabelaCestaBody");
+            if (!tbody) return;
+
+            tbody.innerHTML = "";
+
+            // Ordenar: produtos marcados para compra sobem para o topo da tabela
+            const itensOrdenados = [...cestaCache.itens].sort((a, b) => {
+                const aChecked = itensSelecionadosCesta.has(a.produto_id) ? 1 : 0;
+                const bChecked = itensSelecionadosCesta.has(b.produto_id) ? 1 : 0;
+                if (aChecked !== bChecked) {
+                    return bChecked - aChecked; // 1 (marcado) no topo antes de 0 (desmarcado)
+                }
+                return (a.nome || "").localeCompare(b.nome || "");
+            });
+
+            itensOrdenados.forEach(it => {
+                const tr = document.createElement("tr");
+                tr.id = `rowCesta_${it.produto_id}`;
+
+                const precoV = it.precos_farmacias ? it.precos_farmacias["Drogaria Venancio"] : null;
+                const precoP = it.precos_farmacias ? it.precos_farmacias["Drogarias Pacheco"] : null;
+                const precoM = it.precos_farmacias ? it.precos_farmacias["Drogasmil"] : null;
+                const precoR = it.precos_farmacias ? it.precos_farmacias["Droga Raia"] : null;
+
+                const detV = it.detalhes_farmacias ? it.detalhes_farmacias["Drogaria Venancio"] : null;
+                const detP = it.detalhes_farmacias ? it.detalhes_farmacias["Drogarias Pacheco"] : null;
+                const detM = it.detalhes_farmacias ? it.detalhes_farmacias["Drogasmil"] : null;
+                const detR = it.detalhes_farmacias ? it.detalhes_farmacias["Droga Raia"] : null;
+
+                const isVenWinner = it.melhor_farmacia === "Drogaria Venancio";
+                const isPachWinner = it.melhor_farmacia === "Drogarias Pacheco";
+                const isMilWinner = it.melhor_farmacia === "Drogasmil";
+                const isRaiaWinner = it.melhor_farmacia === "Droga Raia";
+
+                const tdVen = precoV ? `
+                    <div class="font-bold ${isVenWinner ? 'text-emerald-700' : 'text-slate-800'}">${formatarMoeda(precoV)}</div>
+                    ${it.quantidade_mensal > 1 ? `<div class="text-[10px] text-slate-400">(${it.quantidade_mensal}x ${formatarMoeda(detV ? detV.unitario : precoV / it.quantidade_mensal)})</div>` : ''}
+                    ${detV && detV.laboratorio ? `<div class="text-[9px] text-slate-500 font-medium">${detV.laboratorio}</div>` : ''}
+                ` : `<span class="text-slate-400">—</span>`;
+
+                const tdPach = precoP ? `
+                    <div class="font-bold ${isPachWinner ? 'text-emerald-700' : 'text-slate-800'}">${formatarMoeda(precoP)}</div>
+                    ${it.quantidade_mensal > 1 ? `<div class="text-[10px] text-slate-400">(${it.quantidade_mensal}x ${formatarMoeda(detP ? detP.unitario : precoP / it.quantidade_mensal)})</div>` : ''}
+                    ${detP && detP.laboratorio ? `<div class="text-[9px] text-slate-500 font-medium">${detP.laboratorio}</div>` : ''}
+                ` : `<span class="text-slate-400">—</span>`;
+
+                const tdMil = precoM ? `
+                    <div class="font-bold ${isMilWinner ? 'text-emerald-700' : 'text-slate-800'}">${formatarMoeda(precoM)}</div>
+                    ${it.quantidade_mensal > 1 ? `<div class="text-[10px] text-slate-400">(${it.quantidade_mensal}x ${formatarMoeda(detM ? detM.unitario : precoM / it.quantidade_mensal)})</div>` : ''}
+                    ${detM && detM.laboratorio ? `<div class="text-[9px] text-slate-500 font-medium">${detM.laboratorio}</div>` : ''}
+                ` : `<span class="text-slate-400">—</span>`;
+
+                let tdRaia = `<span class="text-slate-400">—</span>`;
+                if (precoR) {
+                    const raiaExp = detR && detR.expirado_3dias;
+                    const raiaDias = detR ? detR.dias_desde_upload : 0;
+                    const statusTag = raiaExp ? 
+                        `<div class="text-[9px] text-rose-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Expirado (${raiaDias}d)</div>` :
+                        `<div class="text-[9px] text-emerald-600 font-semibold"><i class="fa-solid fa-check"></i> Válido (${raiaDias}d)</div>`;
+                        
+                    tdRaia = `
+                        <div class="font-bold ${isRaiaWinner ? 'text-emerald-700' : 'text-slate-800'}">${formatarMoeda(precoR)}</div>
+                        ${it.quantidade_mensal > 1 ? `<div class="text-[10px] text-slate-400">(${it.quantidade_mensal}x ${formatarMoeda(detR ? detR.unitario : precoR / it.quantidade_mensal)})</div>` : ''}
+                        ${detR && detR.laboratorio ? `<div class="text-[9px] text-slate-500 font-medium">${detR.laboratorio}</div>` : ''}
+                        ${statusTag}
+                    `;
+                } else if (it.status_raia && it.status_raia.tem_cotacao) {
+                    tdRaia = `<div class="text-[10px] text-rose-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Print expirado</div>`;
+                }
+
+                const isChecked = itensSelecionadosCesta.has(it.produto_id);
+                tr.className = `hover:bg-slate-50/80 group transition-all duration-200 ${isChecked ? 'bg-white' : 'opacity-50 bg-slate-50/50'}`;
+
+                tr.innerHTML = `
+                    <td class="sticky left-0 z-20 ${isChecked ? 'bg-white' : 'bg-slate-50'} group-hover:bg-slate-100/80 px-3.5 py-3 min-w-[175px] max-w-[220px] shadow-[3px_0_6px_-2px_rgba(0,0,0,0.12)] border-r border-b border-slate-100">
+                        <div class="font-bold text-slate-900 leading-snug">${it.nome} <span class="text-cyan-800 font-black">${it.dosagem}</span></div>
+                        <div class="text-[10px] text-slate-500 mt-0.5">${it.apresentacao} • <span class="text-purple-700 font-medium">${it.categoria || 'Geral'}</span></div>
+                    </td>
+                    <td class="px-3.5 py-3 text-center border-b border-slate-100">
+                        <span class="inline-block ${it.quantidade_mensal > 1 ? 'bg-amber-100 text-amber-900 border border-amber-200' : 'bg-emerald-100 text-emerald-800'} font-bold px-2 py-0.5 rounded text-xs whitespace-nowrap">
+                            ${it.quantidade_mensal} un / mês
+                        </span>
+                    </td>
+                    <td class="px-3.5 py-3 font-medium text-slate-700 border-b border-slate-100">
+                        <div class="font-semibold text-slate-900 text-xs">${it.fabricante}</div>
+                    </td>
+                    <td class="px-3.5 py-3 text-right border-b border-slate-100 ${isVenWinner ? 'bg-emerald-50/70 border-l border-r border-emerald-100' : ''}">
+                        ${tdVen}
+                    </td>
+                    <td class="px-3.5 py-3 text-right border-b border-slate-100 ${isPachWinner ? 'bg-emerald-50/70 border-l border-r border-emerald-100' : ''}">
+                        ${tdPach}
+                    </td>
+                    <td class="px-3.5 py-3 text-right border-b border-slate-100 ${isMilWinner ? 'bg-emerald-50/70 border-l border-r border-emerald-100' : ''}">
+                        ${tdMil}
+                    </td>
+                    <td class="px-3.5 py-3 text-right border-b border-slate-100 ${isRaiaWinner ? 'bg-emerald-50/70 border-l border-r border-emerald-100' : ''}">
+                        ${tdRaia}
+                    </td>
+                    <td class="px-3.5 py-3 text-center border-b border-slate-100">
+                        <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-full shadow-xs whitespace-nowrap">
+                            <i class="fa-solid fa-trophy text-[10px] text-amber-500"></i> ${it.melhor_farmacia}
+                        </span>
+                    </td>
+                    <td class="px-3.5 py-3 text-center border-b border-slate-100">
+                        <div class="flex items-center justify-center gap-1.5">
+                            <button onclick="selecionarMedicamento('${it.produto_id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded-lg transition" title="Ver no comparador">
+                                Comparar
+                            </button>
+                            <button onclick="abrirModalEdicao('${it.produto_id}')" class="text-xs bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-2 py-1 rounded-lg transition" title="Editar dosagem ou quantidade">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                        </div>
+                    </td>
+                    <td class="px-3.5 py-3 text-center border-b border-slate-100 ${isChecked ? 'bg-emerald-50/50' : 'bg-slate-50/40'}">
+                        <button type="button" onclick="toggleItemCesta('${it.produto_id}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95 ${isChecked ? 'bg-emerald-600 text-white border-emerald-700 hover:bg-emerald-700' : 'bg-white text-slate-500 border-slate-300 hover:bg-slate-100'}" title="${isChecked ? 'Item marcado para compra. Clique para desmarcar.' : 'Item não selecionado. Clique para incluir na compra.'}">
+                            <i class="fa-solid ${isChecked ? 'fa-circle-check text-white' : 'fa-circle text-slate-300'}"></i>
+                            <span class="whitespace-nowrap">${isChecked ? 'Comprar' : 'Ignorar'}</span>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
         async function carregarCestaMensal() {
             const tbody = document.getElementById("tabelaCestaBody");
-            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-slate-400"><i class="fa-solid fa-spinner fa-spin text-lg mb-1.5"></i><p>Calculando totais da lista completa nas farmácias...</p></td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-slate-400"><i class="fa-solid fa-spinner fa-spin text-lg mb-1.5"></i><p>Calculando totais da lista de compras nas farmácias...</p></td></tr>`;
 
             try {
                 const res = await fetch("/api/cesta-mensal");
@@ -2703,7 +2849,7 @@
                 cestaCache = data;
 
                 if (!data.sucesso || !data.itens || data.itens.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-slate-500">Nenhum item na lista completa.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-slate-500">Nenhum item na lista de compras.</td></tr>`;
                     return;
                 }
 
@@ -2741,118 +2887,11 @@
                     }
                 }
 
-                tbody.innerHTML = "";
-                data.itens.forEach(it => {
-                    const tr = document.createElement("tr");
-                    tr.id = `rowCesta_${it.produto_id}`;
-                    tr.className = "hover:bg-slate-50/80 transition";
-
-                    const precoV = it.precos_farmacias ? it.precos_farmacias["Drogaria Venancio"] : null;
-                    const precoP = it.precos_farmacias ? it.precos_farmacias["Drogarias Pacheco"] : null;
-                    const precoM = it.precos_farmacias ? it.precos_farmacias["Drogasmil"] : null;
-                    const precoR = it.precos_farmacias ? it.precos_farmacias["Droga Raia"] : null;
-
-                    const detV = it.detalhes_farmacias ? it.detalhes_farmacias["Drogaria Venancio"] : null;
-                    const detP = it.detalhes_farmacias ? it.detalhes_farmacias["Drogarias Pacheco"] : null;
-                    const detM = it.detalhes_farmacias ? it.detalhes_farmacias["Drogasmil"] : null;
-                    const detR = it.detalhes_farmacias ? it.detalhes_farmacias["Droga Raia"] : null;
-
-                    const isVenWinner = it.melhor_farmacia === "Drogaria Venancio";
-                    const isPachWinner = it.melhor_farmacia === "Drogarias Pacheco";
-                    const isMilWinner = it.melhor_farmacia === "Drogasmil";
-                    const isRaiaWinner = it.melhor_farmacia === "Droga Raia";
-
-                    const tdVen = precoV ? `
-                        <div class="font-bold ${isVenWinner ? 'text-emerald-700' : 'text-slate-800'}">${formatarMoeda(precoV)}</div>
-                        ${it.quantidade_mensal > 1 ? `<div class="text-[10px] text-slate-400">(${it.quantidade_mensal}x ${formatarMoeda(detV ? detV.unitario : precoV / it.quantidade_mensal)})</div>` : ''}
-                        ${detV && detV.laboratorio ? `<div class="text-[9px] text-slate-500 font-medium">${detV.laboratorio}</div>` : ''}
-                    ` : `<span class="text-slate-400">—</span>`;
-
-                    const tdPach = precoP ? `
-                        <div class="font-bold ${isPachWinner ? 'text-emerald-700' : 'text-slate-800'}">${formatarMoeda(precoP)}</div>
-                        ${it.quantidade_mensal > 1 ? `<div class="text-[10px] text-slate-400">(${it.quantidade_mensal}x ${formatarMoeda(detP ? detP.unitario : precoP / it.quantidade_mensal)})</div>` : ''}
-                        ${detP && detP.laboratorio ? `<div class="text-[9px] text-slate-500 font-medium">${detP.laboratorio}</div>` : ''}
-                    ` : `<span class="text-slate-400">—</span>`;
-
-                    const tdMil = precoM ? `
-                        <div class="font-bold ${isMilWinner ? 'text-emerald-700' : 'text-slate-800'}">${formatarMoeda(precoM)}</div>
-                        ${it.quantidade_mensal > 1 ? `<div class="text-[10px] text-slate-400">(${it.quantidade_mensal}x ${formatarMoeda(detM ? detM.unitario : precoM / it.quantidade_mensal)})</div>` : ''}
-                        ${detM && detM.laboratorio ? `<div class="text-[9px] text-slate-500 font-medium">${detM.laboratorio}</div>` : ''}
-                    ` : `<span class="text-slate-400">—</span>`;
-
-                    let tdRaia = `<span class="text-slate-400">—</span>`;
-                    if (precoR) {
-                        const raiaExp = detR && detR.expirado_3dias;
-                        const raiaDias = detR ? detR.dias_desde_upload : 0;
-                        const statusTag = raiaExp ? 
-                            `<div class="text-[9px] text-rose-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Expirado (${raiaDias}d)</div>` :
-                            `<div class="text-[9px] text-emerald-600 font-semibold"><i class="fa-solid fa-check"></i> Válido (${raiaDias}d)</div>`;
-                            
-                        tdRaia = `
-                            <div class="font-bold ${isRaiaWinner ? 'text-emerald-700' : 'text-slate-800'}">${formatarMoeda(precoR)}</div>
-                            ${it.quantidade_mensal > 1 ? `<div class="text-[10px] text-slate-400">(${it.quantidade_mensal}x ${formatarMoeda(detR ? detR.unitario : precoR / it.quantidade_mensal)})</div>` : ''}
-                            ${detR && detR.laboratorio ? `<div class="text-[9px] text-slate-500 font-medium">${detR.laboratorio}</div>` : ''}
-                            ${statusTag}
-                        `;
-                    } else if (it.status_raia && it.status_raia.tem_cotacao) {
-                        tdRaia = `<div class="text-[10px] text-rose-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Print expirado</div>`;
-                    }
-
-                    tr.className = "hover:bg-slate-50/80 group transition";
-                    const isChecked = itensSelecionadosCesta.has(it.produto_id);
-
-                    tr.innerHTML = `
-                        <td class="sticky left-0 z-20 bg-white group-hover:bg-slate-50 px-3.5 py-3 text-center w-12 min-w-[50px] max-w-[50px] border-r border-b border-slate-100">
-                            <input type="checkbox" id="checkItem_${it.produto_id}" onchange="toggleItemCesta('${it.produto_id}')" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer">
-                        </td>
-                        <td class="sticky left-[50px] z-20 bg-white group-hover:bg-slate-50 px-3.5 py-3 min-w-[175px] max-w-[220px] shadow-[3px_0_6px_-2px_rgba(0,0,0,0.12)] border-r border-b border-slate-100">
-                            <div class="font-bold text-slate-900 leading-snug">${it.nome} <span class="text-cyan-800 font-black">${it.dosagem}</span></div>
-                            <div class="text-[10px] text-slate-500 mt-0.5">${it.apresentacao} • <span class="text-purple-700 font-medium">${it.categoria || 'Geral'}</span></div>
-                        </td>
-                        <td class="px-3.5 py-3 text-center border-b border-slate-100">
-                            <span class="inline-block ${it.quantidade_mensal > 1 ? 'bg-amber-100 text-amber-900 border border-amber-200' : 'bg-emerald-100 text-emerald-800'} font-bold px-2 py-0.5 rounded text-xs whitespace-nowrap">
-                                ${it.quantidade_mensal} un / mês
-                            </span>
-                        </td>
-                        <td class="px-3.5 py-3 font-medium text-slate-700 border-b border-slate-100">
-                            <div class="font-semibold text-slate-900 text-xs">${it.fabricante}</div>
-                        </td>
-                        <td class="px-3.5 py-3 text-right border-b border-slate-100 ${isVenWinner ? 'bg-emerald-50/70 border-l border-r border-emerald-100' : ''}">
-                            ${tdVen}
-                        </td>
-                        <td class="px-3.5 py-3 text-right border-b border-slate-100 ${isPachWinner ? 'bg-emerald-50/70 border-l border-r border-emerald-100' : ''}">
-                            ${tdPach}
-                        </td>
-                        <td class="px-3.5 py-3 text-right border-b border-slate-100 ${isMilWinner ? 'bg-emerald-50/70 border-l border-r border-emerald-100' : ''}">
-                            ${tdMil}
-                        </td>
-                        <td class="px-3.5 py-3 text-right border-b border-slate-100 ${isRaiaWinner ? 'bg-emerald-50/70 border-l border-r border-emerald-100' : ''}">
-                            ${tdRaia}
-                        </td>
-                        <td class="px-3.5 py-3 text-center border-b border-slate-100">
-                            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-full shadow-xs whitespace-nowrap">
-                                <i class="fa-solid fa-trophy text-[10px] text-amber-500"></i> ${it.melhor_farmacia}
-                            </span>
-                        </td>
-                        <td class="px-3.5 py-3 text-center border-b border-slate-100">
-                            <div class="flex items-center justify-center gap-1.5">
-                                <button onclick="selecionarMedicamento('${it.produto_id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded-lg transition" title="Ver no comparador">
-                                    Comparar
-                                </button>
-                                <button onclick="abrirModalEdicao('${it.produto_id}')" class="text-xs bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-2 py-1 rounded-lg transition" title="Editar dosagem ou quantidade">
-                                    <i class="fa-solid fa-pen"></i>
-                                </button>
-                            </div>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-
-                // Executar o recálculo imediato com base na seleção
+                renderizarTabelaCesta();
                 recalcularTotaisCesta();
 
             } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-rose-500">Erro ao carregar lista completa: ${err.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-rose-500">Erro ao carregar lista de compras: ${err.message}</td></tr>`;
             }
         }
 
