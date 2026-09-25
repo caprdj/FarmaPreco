@@ -31,7 +31,7 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-16 md:pb-0">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-16 md:pb-0 overflow-x-hidden">
 
     <!-- Top Navigation / Header -->
     <header class="gradient-header text-white shadow-lg sticky top-0 z-40">
@@ -72,42 +72,42 @@
     </header>
 
     <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex-1 w-full">
+    <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-5 flex-1 w-full min-w-0 overflow-x-hidden">
 
         <!-- Bar: Seletor de Medicamento Ativo e CEP -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/90 p-4 mb-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/90 p-3.5 sm:p-4 mb-5 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 max-w-full overflow-hidden">
             
-            <div class="flex items-center gap-3.5">
-                <div class="w-11 h-11 rounded-xl bg-cyan-50 border border-cyan-100 flex items-center justify-center text-cyan-700 text-lg font-bold">
+            <div class="flex items-center gap-3 sm:gap-3.5 min-w-0 max-w-full flex-1">
+                <div class="w-10 h-10 sm:w-11 sm:h-11 flex-shrink-0 rounded-xl bg-cyan-50 border border-cyan-100 flex items-center justify-center text-cyan-700 text-lg font-bold">
                     <i class="fa-solid fa-pills"></i>
                 </div>
-                <div>
+                <div class="min-w-0 flex-1 max-w-full">
                     <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Medicamento Selecionado:</label>
-                    <div class="flex items-center gap-2">
-                        <select id="seletorMedicamento" onchange="trocarMedicamento()" class="text-sm font-bold text-slate-900 bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1 focus:ring-cyan-500 focus:border-cyan-500">
+                    <div class="flex items-center gap-2 mt-0.5 min-w-0 max-w-full">
+                        <select id="seletorMedicamento" onchange="trocarMedicamento()" class="min-w-0 flex-1 w-full max-w-full truncate text-xs sm:text-sm font-bold text-slate-900 bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 focus:ring-cyan-500 focus:border-cyan-500">
                             {% for p in produtos %}
                             <option value="{{ p.produto_id }}" {% if p.produto_id == produto.produto_id %}selected{% endif %}>
                                 {{ p.nome }} {{ p.dosagem }} ({{ p.fabricante }})
                             </option>
                             {% endfor %}
                         </select>
-                        <span id="badgeCategoriaAtiva" class="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200">
+                        <span id="badgeCategoriaAtiva" class="flex-shrink-0 text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200 whitespace-nowrap">
                             {{ produto.categoria or 'Referência' }}
                         </span>
                     </div>
-                    <div class="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
-                        <span>Ativo: <strong id="infoPrincipioAtivo" class="text-slate-700">{{ produto.principio_ativo }}</strong></span>
-                        <span>•</span>
-                        <span id="infoApresentacao">{{ produto.apresentacao }}</span>
+                    <div class="text-[11px] text-slate-500 flex items-center gap-2 mt-1 truncate">
+                        <span class="truncate">Ativo: <strong id="infoPrincipioAtivo" class="text-slate-700">{{ produto.principio_ativo }}</strong></span>
+                        <span class="flex-shrink-0">•</span>
+                        <span id="infoApresentacao" class="truncate">{{ produto.apresentacao }}</span>
                     </div>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3 text-xs text-slate-600 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200">
-                <i class="fa-solid fa-location-dot text-rose-500 text-sm"></i>
-                <div>
-                    <div><strong>CEP 20511-190</strong> — Tijuca, Rio de Janeiro</div>
-                    <div class="text-slate-500 text-[11px]">R. Conde de Bonfim / Pç. Saenz Peña</div>
+            <div class="flex items-center gap-3 text-xs text-slate-600 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200 flex-shrink-0 max-w-full">
+                <i class="fa-solid fa-location-dot text-rose-500 text-sm flex-shrink-0"></i>
+                <div class="min-w-0 truncate">
+                    <div class="truncate"><strong>CEP 20511-190</strong> — Tijuca, Rio de Janeiro</div>
+                    <div class="text-slate-500 text-[11px] truncate">R. Conde de Bonfim / Pç. Saenz Peña</div>
                 </div>
             </div>
         </div>
@@ -230,24 +230,24 @@
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs text-slate-600">
+                    <table class="w-full text-left text-xs text-slate-600 border-separate border-spacing-0">
                         <thead class="bg-slate-100/80 text-slate-700 uppercase text-[11px] font-bold border-b border-slate-200">
                             <tr>
-                                <th class="px-3.5 py-3 text-center whitespace-nowrap bg-emerald-50/70 border-r border-slate-200">
+                                <th class="sticky left-0 z-30 bg-slate-100 px-3.5 py-3 text-center whitespace-nowrap border-r border-b border-slate-200 w-12 min-w-[50px] max-w-[50px]">
                                     <div class="flex items-center justify-center gap-1.5 cursor-pointer" onclick="toggleTodosCestaMaster()">
                                         <input type="checkbox" id="checkMasterCesta" onchange="marcarTodosCesta(this.checked)" checked class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer">
                                         <span class="text-[10px] font-black text-emerald-900">Comprar</span>
                                     </div>
                                 </th>
-                                <th class="px-3.5 py-2.5">Medicamento / Produto</th>
-                                <th class="px-3 py-2.5 text-center">Consumo Mensal</th>
-                                <th class="px-3.5 py-2.5">Laboratório / Marca</th>
-                                <th class="px-3 py-2.5 text-right">Drogaria Venancio</th>
-                                <th class="px-3 py-2.5 text-right">Drogarias Pacheco</th>
-                                <th class="px-3 py-2.5 text-right">Drogasmil</th>
-                                <th class="px-3 py-2.5 text-right">Droga Raia (Prints 3d)</th>
-                                <th class="px-3 py-2.5 text-center">Melhor Opção</th>
-                                <th class="px-3 py-2.5 text-center">Ações</th>
+                                <th class="sticky left-[50px] z-30 bg-slate-100 px-3.5 py-2.5 min-w-[175px] max-w-[220px] shadow-[3px_0_6px_-2px_rgba(0,0,0,0.12)] border-r border-b border-slate-200">Medicamento / Produto</th>
+                                <th class="px-3 py-2.5 text-center border-b border-slate-200">Consumo Mensal</th>
+                                <th class="px-3.5 py-2.5 border-b border-slate-200">Laboratório / Marca</th>
+                                <th class="px-3 py-2.5 text-right border-b border-slate-200">Drogaria Venancio</th>
+                                <th class="px-3 py-2.5 text-right border-b border-slate-200">Drogarias Pacheco</th>
+                                <th class="px-3 py-2.5 text-right border-b border-slate-200">Drogasmil</th>
+                                <th class="px-3 py-2.5 text-right border-b border-slate-200">Droga Raia (Prints 3d)</th>
+                                <th class="px-3 py-2.5 text-center border-b border-slate-200">Melhor Opção</th>
+                                <th class="px-3 py-2.5 text-center border-b border-slate-200">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="tabelaCestaBody" class="divide-y divide-slate-100">
@@ -257,18 +257,19 @@
                         </tbody>
                         <tfoot class="bg-slate-50 font-bold border-t-2 border-slate-200 text-slate-800">
                             <tr class="text-xs">
-                                <td colspan="4" class="px-3.5 py-3 font-extrabold text-slate-900 uppercase">
+                                <td class="sticky left-0 z-20 bg-slate-50 w-12 min-w-[50px] max-w-[50px] border-r border-slate-200"></td>
+                                <td colspan="3" class="sticky left-[50px] z-20 bg-slate-50 px-3.5 py-3 font-extrabold text-slate-900 uppercase shadow-[3px_0_6px_-2px_rgba(0,0,0,0.12)] border-r border-slate-200">
                                     <div class="flex items-center gap-2">
                                         <i class="fa-solid fa-calculator text-emerald-600"></i>
-                                        <span>Total dos Produtos Selecionados:</span>
+                                        <span class="whitespace-nowrap">Total dos Produtos Selecionados:</span>
                                     </div>
                                 </td>
-                                <td id="tfootTotalVenancio" class="px-3 py-3 text-right font-black text-slate-900">R$ 0,00</td>
-                                <td id="tfootTotalPacheco" class="px-3 py-3 text-right font-black text-slate-900">R$ 0,00</td>
-                                <td id="tfootTotalDrogasmil" class="px-3 py-3 text-right font-black text-slate-900">R$ 0,00</td>
-                                <td id="tfootTotalRaia" class="px-3 py-3 text-right font-black text-slate-900">R$ 0,00</td>
+                                <td id="tfootTotalVenancio" class="px-3 py-3 text-right font-black text-slate-900 border-t-2 border-slate-200">R$ 0,00</td>
+                                <td id="tfootTotalPacheco" class="px-3 py-3 text-right font-black text-slate-900 border-t-2 border-slate-200">R$ 0,00</td>
+                                <td id="tfootTotalDrogasmil" class="px-3 py-3 text-right font-black text-slate-900 border-t-2 border-slate-200">R$ 0,00</td>
+                                <td id="tfootTotalRaia" class="px-3 py-3 text-right font-black text-slate-900 border-t-2 border-slate-200">R$ 0,00</td>
                                 <td id="tfootTotalOtimizado" class="px-3 py-3 text-center font-black text-emerald-700 bg-emerald-100/70 rounded border border-emerald-200">R$ 0,00</td>
-                                <td></td>
+                                <td class="border-t-2 border-slate-200"></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -596,19 +597,19 @@
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs text-slate-600">
-                        <thead class="bg-slate-100/70 text-slate-700 uppercase text-[11px] font-bold border-b border-slate-200">
+                    <table class="w-full text-left text-xs text-slate-600 border-separate border-spacing-0">
+                        <thead class="bg-slate-100/80 text-slate-700 uppercase text-[11px] font-bold border-b border-slate-200">
                             <tr>
-                                <th scope="col" class="px-4 py-2.5 text-center w-12">Pos.</th>
-                                <th scope="col" class="px-4 py-2.5">Farmácia / Filial</th>
-                                <th scope="col" class="px-4 py-2.5">Laboratório / Marca</th>
-                                <th scope="col" class="px-4 py-2.5">Modalidade</th>
-                                <th scope="col" class="px-4 py-2.5">Condição</th>
-                                <th scope="col" class="px-4 py-2.5 text-right">R$ / Caixa</th>
-                                <th scope="col" class="px-4 py-2.5 text-right">Total Estimado</th>
-                                <th scope="col" class="px-4 py-2.5 text-center">Estoque</th>
-                                <th scope="col" class="px-4 py-2.5 text-center">Data</th>
-                                <th scope="col" class="px-4 py-2.5 text-center">Link</th>
+                                <th scope="col" class="sticky left-0 z-30 bg-slate-100 px-4 py-2.5 min-w-[155px] max-w-[185px] shadow-[3px_0_6px_-2px_rgba(0,0,0,0.12)] border-r border-b border-slate-200">Farmácia / Filial</th>
+                                <th scope="col" class="px-3 py-2.5 text-center w-12 border-b border-slate-200">Pos.</th>
+                                <th scope="col" class="px-4 py-2.5 border-b border-slate-200">Laboratório / Marca</th>
+                                <th scope="col" class="px-4 py-2.5 border-b border-slate-200">Modalidade</th>
+                                <th scope="col" class="px-4 py-2.5 border-b border-slate-200">Condição</th>
+                                <th scope="col" class="px-4 py-2.5 text-right border-b border-slate-200">R$ / Caixa</th>
+                                <th scope="col" class="px-4 py-2.5 text-right border-b border-slate-200">Total Estimado</th>
+                                <th scope="col" class="px-4 py-2.5 text-center border-b border-slate-200">Estoque</th>
+                                <th scope="col" class="px-4 py-2.5 text-center border-b border-slate-200">Data</th>
+                                <th scope="col" class="px-4 py-2.5 text-center border-b border-slate-200">Link</th>
                             </tr>
                         </thead>
                         <tbody id="tabelaOfertasBody" class="divide-y divide-slate-100">
@@ -657,16 +658,16 @@
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs text-slate-600">
-                        <thead class="bg-slate-100/70 text-slate-700 uppercase text-[11px] font-bold border-b border-slate-200">
+                    <table class="w-full text-left text-xs text-slate-600 border-separate border-spacing-0">
+                        <thead class="bg-slate-100/80 text-slate-700 uppercase text-[11px] font-bold border-b border-slate-200">
                             <tr>
-                                <th scope="col" class="px-4 py-2.5">Laboratório / Marca</th>
-                                <th scope="col" class="px-4 py-2.5">Produto Comercial</th>
-                                <th scope="col" class="px-4 py-2.5 text-center">Tipo</th>
-                                <th scope="col" class="px-4 py-2.5 text-right">Preço / Caixa</th>
-                                <th scope="col" class="px-4 py-2.5 text-right">Comparativo / Economia</th>
-                                <th scope="col" class="px-4 py-2.5 text-center">Status</th>
-                                <th scope="col" class="px-4 py-2.5 text-center">Link</th>
+                                <th scope="col" class="sticky left-0 z-30 bg-slate-100 px-4 py-2.5 min-w-[155px] max-w-[185px] shadow-[3px_0_6px_-2px_rgba(0,0,0,0.12)] border-r border-b border-slate-200">Laboratório / Marca</th>
+                                <th scope="col" class="px-4 py-2.5 border-b border-slate-200">Produto Comercial</th>
+                                <th scope="col" class="px-4 py-2.5 text-center border-b border-slate-200">Tipo</th>
+                                <th scope="col" class="px-4 py-2.5 text-right border-b border-slate-200">Preço / Caixa</th>
+                                <th scope="col" class="px-4 py-2.5 text-right border-b border-slate-200">Comparativo / Economia</th>
+                                <th scope="col" class="px-4 py-2.5 text-center border-b border-slate-200">Status</th>
+                                <th scope="col" class="px-4 py-2.5 text-center border-b border-slate-200">Link</th>
                             </tr>
                         </thead>
                         <tbody id="tabelaLaboratoriosIntegradoBody" class="divide-y divide-slate-100">
@@ -1675,29 +1676,29 @@
                     }
 
                     tr.innerHTML = `
-                        <td class="px-4 py-2.5 text-center">${medalha}</td>
-                        <td class="px-4 py-2.5">
-                            <div class="font-bold text-slate-900">${of.drogaria}</div>
-                            <div class="text-[10px] text-slate-500">${of.filial}</div>
+                        <td class="sticky left-0 z-20 ${isWinner ? 'bg-amber-50' : 'bg-white group-hover:bg-slate-50'} px-4 py-2.5 min-w-[155px] max-w-[185px] shadow-[3px_0_6px_-2px_rgba(0,0,0,0.12)] border-r border-b border-slate-100">
+                            <div class="font-bold text-slate-900 leading-snug">${of.drogaria}</div>
+                            <div class="text-[10px] text-slate-500 mt-0.5">${of.filial}</div>
                             ${raiaBadge}
                         </td>
-                        <td class="px-4 py-2.5">
+                        <td class="px-3 py-2.5 text-center border-b border-slate-100">${medalha}</td>
+                        <td class="px-4 py-2.5 border-b border-slate-100">
                             ${labDesc}
                         </td>
-                        <td class="px-4 py-2.5">
-                            <span class="text-[10px] px-2 py-0.5 rounded-md font-medium ${of.modalidade.includes('Loja física') ? 'bg-indigo-50 text-indigo-700' : 'bg-cyan-50 text-cyan-800'}">
+                        <td class="px-4 py-2.5 border-b border-slate-100">
+                            <span class="text-[10px] px-2 py-0.5 rounded-md font-medium whitespace-nowrap ${of.modalidade.includes('Loja física') ? 'bg-indigo-50 text-indigo-700' : 'bg-cyan-50 text-cyan-800'}">
                                 ${of.modalidade}
                             </span>
                         </td>
-                        <td class="px-4 py-2.5">
+                        <td class="px-4 py-2.5 border-b border-slate-100">
                             <div class="text-xs ${of.condicao.includes('Promoção') ? 'text-amber-700 font-bold' : 'text-slate-700'}">${of.condicao}</div>
                             ${of.minimo_caixas > 1 ? `<div class="text-[9px] text-slate-500">Mínimo: ${of.minimo_caixas} cx</div>` : ''}
                         </td>
-                        <td class="px-4 py-2.5 text-right font-medium text-slate-800">${formatarMoeda(of.custo_por_caixa)}</td>
-                        <td class="px-4 py-2.5 text-right font-black text-xs sm:text-sm ${isWinner ? 'text-emerald-700' : 'text-slate-900'}">${formatarMoeda(of.total_estimado)}</td>
-                        <td class="px-4 py-2.5 text-center">${badgeEstoque}</td>
-                        <td class="px-4 py-2.5 text-center text-[10px] text-slate-500">${of.data_hora}</td>
-                        <td class="px-4 py-2.5 text-center">
+                        <td class="px-4 py-2.5 text-right font-medium text-slate-800 border-b border-slate-100">${formatarMoeda(of.custo_por_caixa)}</td>
+                        <td class="px-4 py-2.5 text-right font-black text-xs sm:text-sm border-b border-slate-100 ${isWinner ? 'text-emerald-700' : 'text-slate-900'}">${formatarMoeda(of.total_estimado)}</td>
+                        <td class="px-4 py-2.5 text-center border-b border-slate-100">${badgeEstoque}</td>
+                        <td class="px-4 py-2.5 text-center text-[10px] text-slate-500 border-b border-slate-100">${of.data_hora}</td>
+                        <td class="px-4 py-2.5 text-center border-b border-slate-100">
                             ${linkHtml}
                         </td>
                     `;
@@ -1794,21 +1795,21 @@
                         `<span class="text-slate-400 text-[11px]">— (Referência/Mais caro)</span>`;
 
                     tr.innerHTML = `
-                        <td class="px-4 py-3 font-bold text-slate-900">
+                        <td class="sticky left-0 z-20 ${isLowest ? 'bg-emerald-50' : 'bg-white group-hover:bg-slate-50'} px-4 py-3 font-bold text-slate-900 min-w-[155px] max-w-[185px] shadow-[3px_0_6px_-2px_rgba(0,0,0,0.12)] border-r border-b border-slate-100">
                             ${isLowest ? '<i class="fa-solid fa-medal text-amber-500 mr-1"></i>' : ''}
                             ${lab.laboratorio}
                         </td>
-                        <td class="px-4 py-3">
+                        <td class="px-4 py-3 border-b border-slate-100">
                             <div class="text-xs text-slate-800 font-medium">${lab.nome_produto}</div>
                             <div class="text-[10px] text-slate-400">${lab.drogaria}</div>
                         </td>
-                        <td class="px-4 py-3 text-center">${badgeTipo}</td>
-                        <td class="px-4 py-3 text-right font-black text-slate-900 text-xs sm:text-sm">${formatarMoeda(lab.preco)}</td>
-                        <td class="px-4 py-3 text-right">${ecoBadge}</td>
-                        <td class="px-4 py-3 text-center">
-                            ${lab.disponivel ? '<span class="text-emerald-600 text-[11px] font-semibold"><i class="fa-solid fa-check text-[9px]"></i> Disponível</span>' : '<span class="text-slate-400 text-[11px]">Indisponível</span>'}
+                        <td class="px-4 py-3 text-center border-b border-slate-100">${badgeTipo}</td>
+                        <td class="px-4 py-3 text-right font-black text-slate-900 text-xs sm:text-sm border-b border-slate-100">${formatarMoeda(lab.preco)}</td>
+                        <td class="px-4 py-3 text-right border-b border-slate-100">${ecoBadge}</td>
+                        <td class="px-4 py-3 text-center border-b border-slate-100">
+                            ${lab.disponivel ? '<span class="text-emerald-600 text-[11px] font-semibold whitespace-nowrap"><i class="fa-solid fa-check text-[9px]"></i> Disponível</span>' : '<span class="text-slate-400 text-[11px]">Indisponível</span>'}
                         </td>
-                        <td class="px-4 py-3 text-center">
+                        <td class="px-4 py-3 text-center border-b border-slate-100">
                             ${lab.url ? `<a href="${lab.url}" target="_blank" class="text-cyan-600 hover:text-cyan-800 font-bold text-xs inline-flex items-center gap-1">Ver <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i></a>` : '—'}
                         </td>
                     `;
@@ -2797,42 +2798,43 @@
                         tdRaia = `<div class="text-[10px] text-rose-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Print expirado</div>`;
                     }
 
+                    tr.className = "hover:bg-slate-50/80 group transition";
                     const isChecked = itensSelecionadosCesta.has(it.produto_id);
 
                     tr.innerHTML = `
-                        <td class="px-3.5 py-3 text-center bg-emerald-50/40 border-r border-slate-200">
+                        <td class="sticky left-0 z-20 bg-white group-hover:bg-slate-50 px-3.5 py-3 text-center w-12 min-w-[50px] max-w-[50px] border-r border-b border-slate-100">
                             <input type="checkbox" id="checkItem_${it.produto_id}" onchange="toggleItemCesta('${it.produto_id}')" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer">
                         </td>
-                        <td class="px-3.5 py-3">
-                            <div class="font-bold text-slate-900">${it.nome} <span class="text-cyan-800 font-black">${it.dosagem}</span></div>
-                            <div class="text-[10px] text-slate-500">${it.apresentacao} • <span class="text-purple-700 font-medium">${it.categoria || 'Geral'}</span></div>
+                        <td class="sticky left-[50px] z-20 bg-white group-hover:bg-slate-50 px-3.5 py-3 min-w-[175px] max-w-[220px] shadow-[3px_0_6px_-2px_rgba(0,0,0,0.12)] border-r border-b border-slate-100">
+                            <div class="font-bold text-slate-900 leading-snug">${it.nome} <span class="text-cyan-800 font-black">${it.dosagem}</span></div>
+                            <div class="text-[10px] text-slate-500 mt-0.5">${it.apresentacao} • <span class="text-purple-700 font-medium">${it.categoria || 'Geral'}</span></div>
                         </td>
-                        <td class="px-3.5 py-3 text-center">
-                            <span class="inline-block ${it.quantidade_mensal > 1 ? 'bg-amber-100 text-amber-900 border border-amber-200' : 'bg-emerald-100 text-emerald-800'} font-bold px-2 py-0.5 rounded text-xs">
+                        <td class="px-3.5 py-3 text-center border-b border-slate-100">
+                            <span class="inline-block ${it.quantidade_mensal > 1 ? 'bg-amber-100 text-amber-900 border border-amber-200' : 'bg-emerald-100 text-emerald-800'} font-bold px-2 py-0.5 rounded text-xs whitespace-nowrap">
                                 ${it.quantidade_mensal} un / mês
                             </span>
                         </td>
-                        <td class="px-3.5 py-3 font-medium text-slate-700">
+                        <td class="px-3.5 py-3 font-medium text-slate-700 border-b border-slate-100">
                             <div class="font-semibold text-slate-900 text-xs">${it.fabricante}</div>
                         </td>
-                        <td class="px-3.5 py-3 text-right ${isVenWinner ? 'bg-emerald-50/70 border-l border-r border-emerald-100' : ''}">
+                        <td class="px-3.5 py-3 text-right border-b border-slate-100 ${isVenWinner ? 'bg-emerald-50/70 border-l border-r border-emerald-100' : ''}">
                             ${tdVen}
                         </td>
-                        <td class="px-3.5 py-3 text-right ${isPachWinner ? 'bg-emerald-50/70 border-l border-r border-emerald-100' : ''}">
+                        <td class="px-3.5 py-3 text-right border-b border-slate-100 ${isPachWinner ? 'bg-emerald-50/70 border-l border-r border-emerald-100' : ''}">
                             ${tdPach}
                         </td>
-                        <td class="px-3.5 py-3 text-right ${isMilWinner ? 'bg-emerald-50/70 border-l border-r border-emerald-100' : ''}">
+                        <td class="px-3.5 py-3 text-right border-b border-slate-100 ${isMilWinner ? 'bg-emerald-50/70 border-l border-r border-emerald-100' : ''}">
                             ${tdMil}
                         </td>
-                        <td class="px-3.5 py-3 text-right ${isRaiaWinner ? 'bg-emerald-50/70 border-l border-r border-emerald-100' : ''}">
+                        <td class="px-3.5 py-3 text-right border-b border-slate-100 ${isRaiaWinner ? 'bg-emerald-50/70 border-l border-r border-emerald-100' : ''}">
                             ${tdRaia}
                         </td>
-                        <td class="px-3.5 py-3 text-center">
-                            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-full shadow-xs">
+                        <td class="px-3.5 py-3 text-center border-b border-slate-100">
+                            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-full shadow-xs whitespace-nowrap">
                                 <i class="fa-solid fa-trophy text-[10px] text-amber-500"></i> ${it.melhor_farmacia}
                             </span>
                         </td>
-                        <td class="px-3.5 py-3 text-center">
+                        <td class="px-3.5 py-3 text-center border-b border-slate-100">
                             <div class="flex items-center justify-center gap-1.5">
                                 <button onclick="selecionarMedicamento('${it.produto_id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded-lg transition" title="Ver no comparador">
                                     Comparar
