@@ -2,7 +2,12 @@ import re
 import asyncio
 from pathlib import Path
 from typing import Dict, Any, List, Optional
-from PIL import Image
+try:
+    from PIL import Image
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
+    Image = None
 
 try:
     import winocr
@@ -13,7 +18,7 @@ except ImportError:
 from services.storage import carregar_produtos
 
 async def extrair_texto_imagem_async(caminho_imagem: Path) -> str:
-    if not WINOCR_AVAILABLE:
+    if not WINOCR_AVAILABLE or not PIL_AVAILABLE or not Image:
         return ""
     try:
         img = Image.open(caminho_imagem)
