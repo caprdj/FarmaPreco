@@ -513,5 +513,6 @@ async def api_raia_confirmar_preco(dados: ConfirmarPrecoRaia):
 
 if __name__ == "__main__":
     import uvicorn
-    print("Iniciando servidor FarmaPreço em http://0.0.0.0:8000 (Acesse no celular: http://192.168.15.9:8000)...")
-    uvicorn.run("portal:app", host="0.0.0.0", port=8000, reload=True)
+    porta = int(os.environ.get("PORT", 8000))
+    print(f"Iniciando servidor FarmaPreço na porta {porta}...")
+    uvicorn.run("portal:app", host="0.0.0.0", port=porta, reload=False)
