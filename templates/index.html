@@ -876,9 +876,24 @@
                             </h3>
                             <span id="badgeTotalCadastradosCount" class="text-xs bg-slate-100 text-slate-700 font-bold px-2 py-0.5 rounded-full">0 itens</span>
                         </div>
+                        
+                        <!-- Banner informativo de Armazenamento Local por Aparelho -->
+                        <div class="mb-3 p-2.5 bg-blue-50/90 border border-blue-200 rounded-xl text-[11px] text-blue-900 flex items-start gap-2">
+                            <i class="fa-solid fa-mobile-screen-button text-blue-600 mt-0.5 text-xs shrink-0"></i>
+                            <div class="leading-tight">
+                                <span class="font-bold">Armazenamento Local Ativo:</span> Suas dosagens e novos produtos cadastrados ficam salvos com segurança <strong>apenas neste smartphone</strong>, sem alterar o de outros usuários.
+                            </div>
+                        </div>
+
                         <div id="listaMedicamentosCadastrados" class="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
                             <!-- Preenchido via JS com botões Editar e Excluir -->
                         </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-100 mt-3 flex justify-between items-center text-xs">
+                        <button type="button" onclick="restaurarCatalogoPadrao()" class="text-[11px] text-slate-500 hover:text-rose-600 font-semibold flex items-center gap-1.5 transition" title="Redefine as personalizações deste aparelho para o catálogo padrão original">
+                            <i class="fa-solid fa-rotate-left"></i> Restaurar Catálogo Padrão
+                        </button>
                     </div>
                 </div>
 
@@ -901,6 +916,11 @@
                     <button onclick="fecharModalEdicao()" class="text-slate-400 hover:text-slate-700 w-8 h-8 rounded-lg flex items-center justify-center text-lg hover:bg-slate-100 transition">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
+                </div>
+
+                <div class="mt-3 p-2.5 bg-amber-50/80 border border-amber-200 rounded-xl text-[11px] text-amber-900 flex items-center gap-2">
+                    <i class="fa-solid fa-mobile-screen-button text-amber-600 text-xs shrink-0"></i>
+                    <span>Alterações salvas <strong>exclusivamente neste smartphone</strong> (não altera a lista de outras pessoas).</span>
                 </div>
 
                 <form id="formEditarProduto" onsubmit="salvarEdicaoProduto(event)" class="mt-4 space-y-4">
@@ -1623,6 +1643,21 @@
             const prodId = document.getElementById("seletorMedicamento").value || "MED001";
 
             const tbody = document.getElementById("tabelaOfertasBody");
+            const cardMelhor = document.getElementById("cardMelhorOpcao");
+            const totalBadge = document.getElementById("totalOfertasBadge");
+
+            if (prodId && prodId.startsWith("LOC_")) {
+                if (cardMelhor) cardMelhor.classList.add("hidden");
+                if (totalBadge) totalBadge.innerText = "0 ofertas";
+                tbody.innerHTML = `<tr><td colspan="10" class="px-4 py-8 text-center text-slate-500">
+                    <i class="fa-solid fa-mobile-screen-button text-cyan-600 text-xl mb-2 block"></i>
+                    <p class="font-bold text-slate-800">Produto adicionado exclusivamente neste smartphone.</p>
+                    <p class="text-xs text-slate-500 mt-1">Para cotar este item, você pode registrar preços na aba "Preço Presencial" ou enviar comprovante na aba "Droga Raia".</p>
+                </td></tr>`;
+                carregarLaboratoriosIntegrado();
+                return;
+            }
+
             tbody.innerHTML = `<tr><td colspan="10" class="px-4 py-6 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-lg mb-1.5"></i><p>Calculando melhor preço...</p></td></tr>`;
 
             try {
@@ -1781,7 +1816,13 @@
             if (badge) badge.innerText = "Consultando...";
 
             try {
-                const termo = `${p.principio_ativo} ${p.dosagem}`.trim();
+                const termo = `${p.principio_ativo || ''} ${p.dosagem || ''}`.trim() || (p.nome || '').trim();
+                if (!termo) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-6 text-center text-slate-500">Princípio ativo não informado para busca de marcas concorrentes.</td></tr>`;
+                    if (badge) badge.innerText = "0 marcas";
+                    if (banner) banner.classList.add("hidden");
+                    return;
+                }
                 const res = await fetch(`/api/laboratorios/comparar?principio_ativo=${encodeURIComponent(termo)}`);
                 const data = await res.json();
 
@@ -1990,11 +2031,108 @@
             }
         }
 
+        // ==========================================
+        // ARMAZENAMENTO LOCAL (MODO MULTI-APARELHO INDEPENDENTE)
+        // ==========================================
+        function getLocalCustomEdits() {
+            try {
+                return JSON.parse(localStorage.getItem("farmapreco_custom_produtos") || "{}");
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function setLocalCustomEdits(edits) {
+            try {
+                localStorage.setItem("farmapreco_custom_produtos", JSON.stringify(edits));
+            } catch (e) {
+                console.warn("Erro ao salvar edições locais:", e);
+            }
+        }
+
+        function getLocalNovosProdutos() {
+            try {
+                return JSON.parse(localStorage.getItem("farmapreco_novos_produtos") || "[]");
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function setLocalNovosProdutos(prods) {
+            try {
+                localStorage.setItem("farmapreco_novos_produtos", JSON.stringify(prods));
+            } catch (e) {
+                console.warn("Erro ao salvar novos produtos locais:", e);
+            }
+        }
+
+        function getLocalExcluidos() {
+            try {
+                return new Set(JSON.parse(localStorage.getItem("farmapreco_excluidos_produtos") || "[]"));
+            } catch (e) {
+                return new Set();
+            }
+        }
+
+        function setLocalExcluidos(exclSet) {
+            try {
+                localStorage.setItem("farmapreco_excluidos_produtos", JSON.stringify([...exclSet]));
+            } catch (e) {
+                console.warn("Erro ao salvar excluídos locais:", e);
+            }
+        }
+
+        function restaurarCatalogoPadrao() {
+            if (!confirm("Deseja redefinir as personalizações deste smartphone e restaurar o catálogo padrão original?")) return;
+            try {
+                localStorage.removeItem("farmapreco_custom_produtos");
+                localStorage.removeItem("farmapreco_novos_produtos");
+                localStorage.removeItem("farmapreco_excluidos_produtos");
+                showToast("Catálogo padrão restaurado com sucesso neste celular!", "fa-circle-check text-emerald-400");
+                carregarListaMedicamentos().then(() => {
+                    carregarCestaMensal();
+                    trocarMedicamento();
+                });
+            } catch (e) {
+                showToast("Erro ao restaurar catálogo: " + e.message, "fa-circle-xmark text-rose-400");
+            }
+        }
+
         async function carregarListaMedicamentos() {
             const container = document.getElementById("listaMedicamentosCadastrados");
             try {
                 const res = await fetch("/api/produtos");
-                produtosCache = await res.json();
+                const baseProdutos = await res.json();
+
+                const customEdits = getLocalCustomEdits();
+                const novosProdutos = getLocalNovosProdutos();
+                const excluidos = getLocalExcluidos();
+
+                let lista = [];
+
+                // 1. Processar itens base do catálogo do servidor
+                baseProdutos.forEach(bp => {
+                    if (excluidos.has(bp.produto_id)) return;
+                    const custom = customEdits[bp.produto_id];
+                    if (custom) {
+                        lista.push({ ...bp, ...custom, isPersonalizado: true });
+                    } else {
+                        lista.push({ ...bp });
+                    }
+                });
+
+                // 2. Adicionar itens cadastrados exclusivamente neste aparelho
+                novosProdutos.forEach(np => {
+                    if (excluidos.has(np.produto_id)) return;
+                    const custom = customEdits[np.produto_id];
+                    if (custom) {
+                        lista.push({ ...np, ...custom, isExclusivoLocal: true });
+                    } else {
+                        lista.push({ ...np, isExclusivoLocal: true });
+                    }
+                });
+
+                produtosCache = lista;
 
                 // Ordenar estritamente em ordem alfabética (A-Z) pelo nome
                 produtosCache.sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR", { sensitivity: "base" }));
@@ -2005,7 +2143,7 @@
                 produtosCache.forEach(p => {
                     const opt = document.createElement("option");
                     opt.value = p.produto_id;
-                    opt.innerText = `${p.nome} ${p.dosagem} (${p.fabricante})`;
+                    opt.innerText = `${p.nome} ${p.dosagem || ''} (${p.fabricante || 'Geral'})`;
                     if (p.produto_id === produtoAtivoId) opt.selected = true;
                     seletor.appendChild(opt);
                 });
@@ -2018,7 +2156,7 @@
                     produtosCache.forEach(p => {
                         const opt = document.createElement("option");
                         opt.value = p.produto_id;
-                        opt.innerText = `${p.nome} ${p.dosagem} (${p.fabricante})`;
+                        opt.innerText = `${p.nome} ${p.dosagem || ''} (${p.fabricante || 'Geral'})`;
                         if (p.produto_id === valRaiaAntigo) opt.selected = true;
                         seletorRaia.appendChild(opt);
                     });
@@ -2033,27 +2171,36 @@
                 produtosCache.forEach(p => {
                     const card = document.createElement("div");
                     card.className = "p-3 bg-slate-50 hover:bg-slate-100/90 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 transition";
+
+                    let tagOrigem = "";
+                    if (p.isPersonalizado) {
+                        tagOrigem = `<span class="bg-amber-100 text-amber-900 border border-amber-300 text-[9px] font-bold px-1.5 py-0.2 rounded inline-flex items-center gap-1"><i class="fa-solid fa-mobile-screen"></i> Editado neste celular</span>`;
+                    } else if (p.isExclusivoLocal) {
+                        tagOrigem = `<span class="bg-emerald-100 text-emerald-900 border border-emerald-300 text-[9px] font-bold px-1.5 py-0.2 rounded inline-flex items-center gap-1"><i class="fa-solid fa-plus"></i> Novo neste celular</span>`;
+                    }
+
                     card.innerHTML = `
                         <div class="space-y-0.5">
                             <div class="font-bold text-xs text-slate-900 flex items-center gap-1.5 flex-wrap">
                                 <span>${p.nome}</span>
-                                <span class="text-cyan-800 font-extrabold bg-cyan-100/80 px-1.5 py-0.2 rounded text-[10px]">${p.dosagem}</span>
+                                <span class="text-cyan-800 font-extrabold bg-cyan-100/80 px-1.5 py-0.2 rounded text-[10px]">${p.dosagem || ''}</span>
                                 <span class="text-slate-500 text-[10px]">(${p.quantidade_mensal || 1}x/mês)</span>
+                                ${tagOrigem}
                             </div>
                             <div class="text-[11px] text-slate-500">
-                                <span class="font-semibold text-slate-700">${p.fabricante}</span> • 
+                                <span class="font-semibold text-slate-700">${p.fabricante || 'Geral'}</span> • 
                                 <span class="font-medium text-purple-700">${p.categoria || 'Genérico'}</span> • 
-                                <span>${p.apresentacao}</span>
+                                <span>${p.apresentacao || ''}</span>
                             </div>
                         </div>
                         <div class="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
                             <button onclick="selecionarMedicamento('${p.produto_id}')" class="text-[11px] bg-cyan-600 hover:bg-cyan-700 text-white font-bold px-2.5 py-1 rounded-lg shadow-xs flex items-center gap-1">
                                 <i class="fa-solid fa-eye text-[10px]"></i> Ver
                             </button>
-                            <button onclick="abrirModalEdicao('${p.produto_id}')" class="text-[11px] bg-amber-500 hover:bg-amber-600 text-white font-bold px-2.5 py-1 rounded-lg shadow-xs flex items-center gap-1" title="Editar dosagem, quantidade e dados">
+                            <button onclick="abrirModalEdicao('${p.produto_id}')" class="text-[11px] bg-amber-500 hover:bg-amber-600 text-white font-bold px-2.5 py-1 rounded-lg shadow-xs flex items-center gap-1" title="Editar dosagem, quantidade e dados neste aparelho">
                                 <i class="fa-solid fa-pen-to-square text-[10px]"></i> Editar
                             </button>
-                            ${produtosCache.length > 1 ? `<button onclick="excluirMedicamento('${p.produto_id}')" class="text-rose-500 hover:text-rose-700 p-1 rounded" title="Excluir"><i class="fa-solid fa-trash-can text-xs"></i></button>` : ''}
+                            <button onclick="excluirMedicamento('${p.produto_id}')" class="text-rose-500 hover:text-rose-700 p-1 rounded transition" title="Remover da lista deste aparelho"><i class="fa-solid fa-trash-can text-xs"></i></button>
                         </div>
                     `;
                     container.appendChild(card);
@@ -2121,25 +2268,27 @@
             };
 
             try {
-                const res = await fetch(`/api/produtos/${prodId}`, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(dados)
-                });
-                const resData = await res.json();
-                if (resData.sucesso) {
-                    showToast("Dosagem e dados atualizados com sucesso!", "fa-circle-check text-emerald-400");
-                    fecharModalEdicao();
-                    await carregarListaMedicamentos();
-                    carregarCestaMensal();
-                    if (produtoAtivoId === prodId) {
-                        trocarMedicamento();
-                    }
+                // Verificar se é produto criado localmente ou item do catálogo padrão
+                const novos = getLocalNovosProdutos();
+                const idx = novos.findIndex(x => x.produto_id === prodId);
+                if (idx !== -1) {
+                    novos[idx] = { ...novos[idx], ...dados };
+                    setLocalNovosProdutos(novos);
                 } else {
-                    showToast("Erro ao salvar: " + (resData.erro || "Verifique os dados."), "fa-circle-xmark text-rose-400");
+                    const customEdits = getLocalCustomEdits();
+                    customEdits[prodId] = dados;
+                    setLocalCustomEdits(customEdits);
+                }
+
+                showToast("Dosagem e dados salvos no seu aparelho!", "fa-circle-check text-emerald-400");
+                fecharModalEdicao();
+                await carregarListaMedicamentos();
+                carregarCestaMensal();
+                if (produtoAtivoId === prodId) {
+                    trocarMedicamento();
                 }
             } catch (err) {
-                showToast("Erro de rede ao editar item.", "fa-circle-xmark text-rose-400");
+                showToast("Erro ao salvar localmente: " + err.message, "fa-circle-xmark text-rose-400");
             } finally {
                 btn.disabled = false;
             }
@@ -2150,7 +2299,9 @@
             const btn = document.getElementById("btnSalvarProd");
             btn.disabled = true;
 
+            const novoId = "LOC_" + Date.now();
             const dados = {
+                produto_id: novoId,
                 nome: document.getElementById("cadNome").value.trim(),
                 principio_ativo: document.getElementById("cadAtivo").value.trim(),
                 dosagem: document.getElementById("cadDosagem").value.trim(),
@@ -2166,38 +2317,49 @@
             };
 
             try {
-                const res = await fetch("/api/produtos", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(dados)
-                });
-                const resData = await res.json();
-                if (resData.sucesso) {
-                    showToast("Cadastrado e incluído no monitoramento com sucesso!", "fa-circle-check text-emerald-400");
-                    document.getElementById("formNovoMedicamento").reset();
-                    await carregarListaMedicamentos();
-                    carregarCestaMensal();
-                    selecionarMedicamento(resData.produto.produto_id);
-                } else {
-                    showToast("Erro ao cadastrar: " + (resData.erro || ""), "fa-circle-xmark text-rose-400");
-                }
+                const novos = getLocalNovosProdutos();
+                novos.push(dados);
+                setLocalNovosProdutos(novos);
+
+                // Marca automaticamente para compra na lista deste aparelho
+                itensSelecionadosCesta.add(novoId);
+                salvarSelecaoCesta();
+
+                showToast("Item cadastrado com sucesso no seu aparelho!", "fa-circle-check text-emerald-400");
+                document.getElementById("formNovoMedicamento").reset();
+                await carregarListaMedicamentos();
+                carregarCestaMensal();
+                selecionarMedicamento(novoId);
             } catch (err) {
-                showToast("Erro de conexão ao cadastrar item.", "fa-circle-xmark text-rose-400");
+                showToast("Erro ao cadastrar localmente.", "fa-circle-xmark text-rose-400");
             } finally {
                 btn.disabled = false;
             }
         }
 
         async function excluirMedicamento(id) {
-            if (!confirm("Deseja realmente remover este item da lista de monitoramento?")) return;
+            if (!confirm("Deseja realmente remover este item da sua lista neste aparelho?")) return;
             try {
-                await fetch(`/api/produtos/${id}`, { method: "DELETE" });
-                showToast("Item removido do monitoramento.", "fa-circle-check text-slate-400");
+                const excluidos = getLocalExcluidos();
+                excluidos.add(id);
+                setLocalExcluidos(excluidos);
+
+                const novos = getLocalNovosProdutos().filter(x => x.produto_id !== id);
+                setLocalNovosProdutos(novos);
+
+                const customEdits = getLocalCustomEdits();
+                delete customEdits[id];
+                setLocalCustomEdits(customEdits);
+
+                itensSelecionadosCesta.delete(id);
+                salvarSelecaoCesta();
+
+                showToast("Item removido da lista deste aparelho.", "fa-circle-check text-slate-400");
                 await carregarListaMedicamentos();
                 carregarCestaMensal();
                 trocarMedicamento();
             } catch (err) {
-                showToast("Erro ao excluir item.", "fa-circle-xmark text-rose-400");
+                showToast("Erro ao excluir item: " + err.message, "fa-circle-xmark text-rose-400");
             }
         }
 
@@ -2839,9 +3001,92 @@
             try {
                 const res = await fetch("/api/cesta-mensal");
                 const data = await res.json();
+
+                const customEdits = getLocalCustomEdits();
+                const novosProdutos = getLocalNovosProdutos();
+                const excluidos = getLocalExcluidos();
+
+                let itensFiltrados = [];
+
+                if (data.sucesso && data.itens) {
+                    data.itens.forEach(it => {
+                        if (excluidos.has(it.produto_id)) return;
+
+                        let itemClone = { ...it };
+                        const custom = customEdits[it.produto_id];
+
+                        if (custom) {
+                            if (custom.nome) itemClone.nome = custom.nome;
+                            if (custom.dosagem) itemClone.dosagem = custom.dosagem;
+                            if (custom.apresentacao) itemClone.apresentacao = custom.apresentacao;
+                            if (custom.fabricante) itemClone.fabricante = custom.fabricante;
+                            if (custom.categoria) itemClone.categoria = custom.categoria;
+
+                            // Se a quantidade mensal foi alterada neste smartphone:
+                            if (custom.quantidade_mensal && custom.quantidade_mensal !== it.quantidade_mensal) {
+                                const antigaQtd = it.quantidade_mensal || 1;
+                                const novaQtd = custom.quantidade_mensal;
+                                itemClone.quantidade_mensal = novaQtd;
+
+                                const novosPrecos = {};
+                                const novosDetalhes = {};
+                                let novoMelhorPreco = null;
+                                let novaMelhorFarmacia = "Pendente";
+
+                                for (const [drog, precoAntigo] of Object.entries(it.precos_farmacias || {})) {
+                                    const detAntigo = (it.detalhes_farmacias && it.detalhes_farmacias[drog]) || {};
+                                    const unitario = detAntigo.unitario || (precoAntigo / antigaQtd);
+                                    const novoTotal = Math.round(unitario * novaQtd * 100) / 100;
+                                    novosPrecos[drog] = novoTotal;
+                                    novosDetalhes[drog] = {
+                                        ...detAntigo,
+                                        total: novoTotal,
+                                        unitario: unitario
+                                    };
+
+                                    if (novoMelhorPreco === null || novoTotal < novoMelhorPreco) {
+                                        novoMelhorPreco = novoTotal;
+                                        novaMelhorFarmacia = drog;
+                                    }
+                                }
+
+                                itemClone.precos_farmacias = novosPrecos;
+                                itemClone.detalhes_farmacias = novosDetalhes;
+                                itemClone.melhor_preco = novoMelhorPreco || 0;
+                                itemClone.melhor_farmacia = novaMelhorFarmacia;
+                            }
+                        }
+
+                        itensFiltrados.push(itemClone);
+                    });
+                }
+
+                // Adicionar produtos cadastrados localmente neste smartphone
+                novosProdutos.forEach(np => {
+                    if (excluidos.has(np.produto_id)) return;
+                    const custom = customEdits[np.produto_id] || {};
+                    const qtd = custom.quantidade_mensal || np.quantidade_mensal || 1;
+                    itensFiltrados.push({
+                        produto_id: np.produto_id,
+                        nome: custom.nome || np.nome,
+                        dosagem: custom.dosagem || np.dosagem || '',
+                        fabricante: custom.fabricante || np.fabricante || 'Geral',
+                        apresentacao: custom.apresentacao || np.apresentacao || '',
+                        categoria: custom.categoria || np.categoria || 'Geral',
+                        quantidade_mensal: qtd,
+                        melhor_preco: 0,
+                        melhor_farmacia: 'Cadastrado no celular',
+                        precos_farmacias: {},
+                        detalhes_farmacias: {},
+                        status_raia: {}
+                    });
+                });
+
+                data.itens = itensFiltrados;
+                data.total_medicamentos = itensFiltrados.length;
                 cestaCache = data;
 
-                if (!data.sucesso || !data.itens || data.itens.length === 0) {
+                if (!cestaCache.itens || cestaCache.itens.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-slate-500">Nenhum item na lista de compras.</td></tr>`;
                     return;
                 }
