@@ -831,11 +831,12 @@
                                     <option value="Genérico">Genérico</option>
                                     <option value="Referência">Referência (Marca Original)</option>
                                     <option value="Similar">Similar</option>
+                                    <option value="Vitamina / Suplemento">Vitamina / Suplemento</option>
+                                    <option value="Suplemento / Referência">Suplemento / Referência</option>
                                     <option value="Dermocosméticos">Dermocosméticos</option>
                                     <option value="Cuidados Pessoais">Cuidados Pessoais</option>
                                     <option value="Higiene & Cuidados Pessoais">Higiene & Cuidados Pessoais</option>
                                     <option value="Cuidados Capilares">Cuidados Capilares</option>
-                                    <option value="Suplemento / Referência">Suplemento / Vitaminas</option>
                                     <option value="Outros">Outros</option>
                                 </select>
                             </div>
@@ -970,11 +971,12 @@
                                 <option value="Genérico">Genérico</option>
                                 <option value="Referência">Referência</option>
                                 <option value="Similar">Similar</option>
+                                <option value="Vitamina / Suplemento">Vitamina / Suplemento</option>
+                                <option value="Suplemento / Referência">Suplemento / Referência</option>
                                 <option value="Dermocosméticos">Dermocosméticos</option>
                                 <option value="Cuidados Pessoais">Cuidados Pessoais</option>
                                 <option value="Higiene & Cuidados Pessoais">Higiene & Cuidados Pessoais</option>
                                 <option value="Cuidados Capilares">Cuidados Capilares</option>
-                                <option value="Suplemento / Referência">Suplemento / Vitaminas</option>
                                 <option value="Outros">Outros</option>
                             </select>
                         </div>
@@ -1636,6 +1638,15 @@
             return Number(val).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
         }
 
+        function formatarLab(lab, fallback) {
+            if (!lab) return fallback || '';
+            const s = String(lab).trim();
+            if (['nan', 'none', 'null', 'undefined', ''].includes(s.toLowerCase())) {
+                return fallback || '';
+            }
+            return s;
+        }
+
         async function atualizarComparacao() {
             const qtd = document.getElementById("inputQtd").value || 1;
             const confirmado = document.getElementById("checkConfirmado").checked;
@@ -1710,7 +1721,9 @@
                         `<span class="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-circle-check text-[8px]"></i> Confirmado</span>` :
                         `<span class="inline-flex items-center gap-1 text-[10px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-clock text-[8px]"></i> ${of.estoque}</span>`;
 
-                    let labDesc = `<div class="font-bold text-slate-900">${of.laboratorio || 'Referência'}</div>`;
+                    const prodAtivoObj = getProdutoAtivo();
+                    const labLimpo = formatarLab(of.laboratorio, (prodAtivoObj ? prodAtivoObj.fabricante : 'Referência'));
+                    let labDesc = `<div class="font-bold text-slate-900">${labLimpo}</div>`;
                     if (of.observacoes && of.observacoes.length > 0 && !of.observacoes.startsWith("Coleta") && !of.observacoes.startsWith("Catálogo")) {
                         labDesc += `<div class="text-[10px] text-slate-500 max-w-[140px] truncate" title="${of.observacoes}">${of.observacoes}</div>`;
                     }
@@ -1868,7 +1881,10 @@
                             <div class="text-[10px] text-slate-400">${lab.drogaria}</div>
                         </td>
                         <td class="px-4 py-3 text-center border-b border-slate-100">${badgeTipo}</td>
-                        <td class="px-4 py-3 text-right font-black text-slate-900 text-xs sm:text-sm border-b border-slate-100">${formatarMoeda(lab.preco)}</td>
+                        <td class="px-4 py-3 text-right border-b border-slate-100">
+                            <div class="font-black text-slate-900 text-xs sm:text-sm">${formatarMoeda(lab.preco)}</div>
+                            ${lab.preco_por_unidade ? `<div class="text-[10px] text-purple-700 font-bold mt-0.5">${formatarMoeda(lab.preco_por_unidade)} / ${lab.unidade_medida || 'un'} <span class="text-slate-400 font-normal">(${lab.qtd_unidades || ''} ${lab.unidade_medida || 'un'})</span></div>` : ''}
+                        </td>
                         <td class="px-4 py-3 text-right border-b border-slate-100">${ecoBadge}</td>
                         <td class="px-4 py-3 text-center border-b border-slate-100">
                             ${lab.disponivel ? '<span class="text-emerald-600 text-[11px] font-semibold whitespace-nowrap"><i class="fa-solid fa-check text-[9px]"></i> Disponível</span>' : '<span class="text-slate-400 text-[11px]">Indisponível</span>'}
@@ -1947,7 +1963,10 @@
                             <div class="text-[10px] text-slate-400">${lab.drogaria}</div>
                         </td>
                         <td class="px-4 py-3 text-center">${badgeTipo}</td>
-                        <td class="px-4 py-3 text-right font-black text-slate-900 text-xs sm:text-sm">${formatarMoeda(lab.preco)}</td>
+                        <td class="px-4 py-3 text-right">
+                            <div class="font-black text-slate-900 text-xs sm:text-sm">${formatarMoeda(lab.preco)}</div>
+                            ${lab.preco_por_unidade ? `<div class="text-[10px] text-purple-700 font-bold mt-0.5">${formatarMoeda(lab.preco_por_unidade)} / ${lab.unidade_medida || 'un'} <span class="text-slate-400 font-normal">(${lab.qtd_unidades || ''} ${lab.unidade_medida || 'un'})</span></div>` : ''}
+                        </td>
                         <td class="px-4 py-3 text-right">${ecoBadge}</td>
                         <td class="px-4 py-3 text-center">
                             ${lab.disponivel ? '<span class="text-emerald-600 text-xs font-semibold"><i class="fa-solid fa-check text-[10px]"></i> Disponível</span>' : '<span class="text-slate-400 text-xs">Indisponível</span>'}
@@ -2143,8 +2162,8 @@
                 baseProdutos.forEach(bp => {
                     if (excluidos.has(bp.produto_id)) return;
                     const custom = customEdits[bp.produto_id];
-                    if (custom) {
-                        lista.push({ ...bp, ...custom, isPersonalizado: true });
+                    if (custom && custom.quantidade_mensal) {
+                        lista.push({ ...bp, quantidade_mensal: custom.quantidade_mensal, isPersonalizado: true });
                     } else {
                         lista.push({ ...bp });
                     }
@@ -2248,7 +2267,18 @@
             document.getElementById("editQuantidadeMensal").value = p.quantidade_mensal || 1;
             document.getElementById("editApresentacao").value = p.apresentacao || "";
             document.getElementById("editFabricante").value = p.fabricante || "";
-            document.getElementById("editCategoria").value = p.categoria || "Genérico";
+
+            const catSelect = document.getElementById("editCategoria");
+            const catVal = p.categoria || "Genérico";
+            const optExists = Array.from(catSelect.options).some(o => o.value === catVal);
+            if (!optExists && catVal) {
+                const opt = document.createElement("option");
+                opt.value = catVal;
+                opt.textContent = catVal;
+                catSelect.appendChild(opt);
+            }
+            catSelect.value = catVal;
+
             document.getElementById("editEan").value = p.ean || "";
             document.getElementById("editUrlPacheco").value = p.url_pacheco || "";
             document.getElementById("editUrlVenancio").value = p.url_venancio || "";
@@ -2297,6 +2327,12 @@
                 const data = await res.json();
 
                 if (data.sucesso) {
+                    // Purge stale local override so server's new category and fields take effect immediately
+                    const customEdits = getLocalCustomEdits();
+                    if (customEdits[prodId]) {
+                        delete customEdits[prodId];
+                        setLocalCustomEdits(customEdits);
+                    }
                     showToast("Produto atualizado e cotações renovadas com sucesso!", "fa-circle-check text-emerald-400");
                     fecharModalEdicao();
                     await carregarListaMedicamentos();
@@ -2955,22 +2991,25 @@
                 const isMilWinner = it.melhor_farmacia === "Drogasmil";
                 const isRaiaWinner = it.melhor_farmacia === "Droga Raia";
 
+                const labV = formatarLab(detV ? detV.laboratorio : '', it.fabricante);
                 const tdVen = precoV ? `
                     <div class="font-bold ${isVenWinner ? 'text-emerald-700' : 'text-slate-800'}">${formatarMoeda(precoV)}</div>
                     ${it.quantidade_mensal > 1 ? `<div class="text-[10px] text-slate-400">(${it.quantidade_mensal}x ${formatarMoeda(detV ? detV.unitario : precoV / it.quantidade_mensal)})</div>` : ''}
-                    ${detV && detV.laboratorio ? `<div class="text-[9px] text-slate-500 font-medium">${detV.laboratorio}</div>` : ''}
+                    ${labV ? `<div class="text-[9px] text-slate-500 font-medium">${labV}</div>` : ''}
                 ` : `<span class="text-slate-400">—</span>`;
 
+                const labP = formatarLab(detP ? detP.laboratorio : '', it.fabricante);
                 const tdPach = precoP ? `
                     <div class="font-bold ${isPachWinner ? 'text-emerald-700' : 'text-slate-800'}">${formatarMoeda(precoP)}</div>
                     ${it.quantidade_mensal > 1 ? `<div class="text-[10px] text-slate-400">(${it.quantidade_mensal}x ${formatarMoeda(detP ? detP.unitario : precoP / it.quantidade_mensal)})</div>` : ''}
-                    ${detP && detP.laboratorio ? `<div class="text-[9px] text-slate-500 font-medium">${detP.laboratorio}</div>` : ''}
+                    ${labP ? `<div class="text-[9px] text-slate-500 font-medium">${labP}</div>` : ''}
                 ` : `<span class="text-slate-400">—</span>`;
 
+                const labM = formatarLab(detM ? detM.laboratorio : '', it.fabricante);
                 const tdMil = precoM ? `
                     <div class="font-bold ${isMilWinner ? 'text-emerald-700' : 'text-slate-800'}">${formatarMoeda(precoM)}</div>
                     ${it.quantidade_mensal > 1 ? `<div class="text-[10px] text-slate-400">(${it.quantidade_mensal}x ${formatarMoeda(detM ? detM.unitario : precoM / it.quantidade_mensal)})</div>` : ''}
-                    ${detM && detM.laboratorio ? `<div class="text-[9px] text-slate-500 font-medium">${detM.laboratorio}</div>` : ''}
+                    ${labM ? `<div class="text-[9px] text-slate-500 font-medium">${labM}</div>` : ''}
                 ` : `<span class="text-slate-400">—</span>`;
 
                 let tdRaia = `<span class="text-slate-400">—</span>`;
@@ -2980,11 +3019,12 @@
                     const statusTag = raiaExp ? 
                         `<div class="text-[9px] text-rose-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Expirado (${raiaDias}d)</div>` :
                         `<div class="text-[9px] text-emerald-600 font-semibold"><i class="fa-solid fa-check"></i> Válido (${raiaDias}d)</div>`;
+                    const labR = formatarLab(detR ? detR.laboratorio : '', it.fabricante);
                         
                     tdRaia = `
                         <div class="font-bold ${isRaiaWinner ? 'text-emerald-700' : 'text-slate-800'}">${formatarMoeda(precoR)}</div>
                         ${it.quantidade_mensal > 1 ? `<div class="text-[10px] text-slate-400">(${it.quantidade_mensal}x ${formatarMoeda(detR ? detR.unitario : precoR / it.quantidade_mensal)})</div>` : ''}
-                        ${detR && detR.laboratorio ? `<div class="text-[9px] text-slate-500 font-medium">${detR.laboratorio}</div>` : ''}
+                        ${labR ? `<div class="text-[9px] text-slate-500 font-medium">${labR}</div>` : ''}
                         ${statusTag}
                     `;
                 } else if (it.status_raia && it.status_raia.tem_cotacao) {

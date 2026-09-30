@@ -1,6 +1,6 @@
 import pandas as pd
 from typing import Dict, Any, List, Optional
-from services.storage import carregar_historico
+from services.storage import carregar_historico, obter_produto_por_id
 
 def estoque_confirmado(valor: Any) -> bool:
     texto = str(valor).strip().lower()
@@ -81,12 +81,18 @@ def comparar_precos(
             continue
 
         lab = str(reg.get("laboratorio", "")).strip()
-        if not lab:
+        if not lab or lab.lower() in ("nan", "none", "null", ""):
+            prod_info = obter_produto_por_id(reg.get("produto_id"))
+            if prod_info and prod_info.get("fabricante"):
+                lab = str(prod_info["fabricante"]).strip()
+        if not lab or lab.lower() in ("nan", "none", "null", ""):
             obs = str(reg.get("observacoes", ""))
             for brand_candidate in ["EMS", "Medley", "Eurofarma", "Sanofi Aventis", "Sanofi", "Aché", "Biolab", "Prati Donaduzzi", "Prati", "Neo Química", "Aspdip", "Merck", "Abbott", "Pfizer", "Bayer"]:
                 if brand_candidate.lower() in obs.lower():
                     lab = brand_candidate
                     break
+        if not lab or lab.lower() in ("nan", "none", "null", ""):
+            lab = "Não informado"
 
         is_raia = "raia" in str(reg["drogaria"]).lower()
         expirado_3dias = False
@@ -100,7 +106,7 @@ def comparar_precos(
         ofertas.append({
             "drogaria": str(reg["drogaria"]),
             "filial": str(reg["filial"]),
-            "laboratorio": lab or "Não informado",
+            "laboratorio": lab,
             "modalidade": modalidade,
             "condicao": condicao,
             "custo_por_caixa": custo_unitario,
