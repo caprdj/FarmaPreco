@@ -81,6 +81,7 @@ class NovoProduto(BaseModel):
     url_venancio: str = ""
     url_drogasmil: str = ""
     url_raia: str = ""
+    preco_raia: Optional[float] = None
 
 class EditarProduto(BaseModel):
     nome: Optional[str] = None
@@ -95,6 +96,11 @@ class EditarProduto(BaseModel):
     url_venancio: Optional[str] = None
     url_drogasmil: Optional[str] = None
     url_raia: Optional[str] = None
+    preco_raia: Optional[float] = None
+
+class SalvarPrecoRaiaSimples(BaseModel):
+    produto_id: str
+    preco: float
 
 class ConfirmarPrecoRaia(BaseModel):
     produto_id: str
@@ -213,7 +219,30 @@ async def api_listar_produtos():
 
 @app.post("/api/produtos")
 async def api_cadastrar_produto(dados: NovoProduto):
-    novo = cadastrar_produto(dados.model_dump())
+    dados_dict = dados.model_dump()
+    preco_raia = dados_dict.pop("preco_raia", None)
+    novo = cadastrar_produto(dados_dict)
+    
+    if preco_raia and preco_raia > 0 and novo:
+        reg_raia = {
+            "data_hora": get_sp_time(),
+            "produto_id": novo["produto_id"],
+            "drogaria": "Droga Raia",
+            "filial": "Rua Conde de Bonfim, 536 — Tijuca",
+            "laboratorio": novo.get("fabricante") or "Droga Raia",
+            "modalidade": "Online — retirada",
+            "condicao_preco": "Preço comum",
+            "valor_total": round(float(preco_raia), 2),
+            "quantidade_caixas": 1,
+            "custo_por_caixa": round(float(preco_raia), 2),
+            "frete": 0.0,
+            "estoque": "Disponível",
+            "fonte": "Inserção manual",
+            "url": novo.get("url_raia") or "https://www.drogaraia.com.br",
+            "observacoes": "Preço informado manualmente (sem expiração)"
+        }
+        salvar_registro(reg_raia, forcar_duplicado=True)
+        
     cotacoes = executar_coleta_produto(novo)
     return JSONResponse({"sucesso": True, "produto": novo, "cotacoes": cotacoes})
 
@@ -227,7 +256,30 @@ async def api_obter_produto(produto_id: str):
 @app.put("/api/produtos/{produto_id}")
 @app.post("/api/produtos/{produto_id}/editar")
 async def api_editar_produto(produto_id: str, dados: EditarProduto):
-    atualizado = atualizar_produto(produto_id, {k: v for k, v in dados.model_dump().items() if v is not None})
+    dados_dict = {k: v for k, v in dados.model_dump().items() if v is not None}
+    preco_raia = dados_dict.pop("preco_raia", None)
+    atualizado = atualizar_produto(produto_id, dados_dict)
+    
+    if preco_raia and preco_raia > 0:
+        reg_raia = {
+            "data_hora": get_sp_time(),
+            "produto_id": produto_id,
+            "drogaria": "Droga Raia",
+            "filial": "Rua Conde de Bonfim, 536 — Tijuca",
+            "laboratorio": (atualizado.get("fabricante") or "Droga Raia") if atualizado else "Droga Raia",
+            "modalidade": "Online — retirada",
+            "condicao_preco": "Preço comum",
+            "valor_total": round(float(preco_raia), 2),
+            "quantidade_caixas": 1,
+            "custo_por_caixa": round(float(preco_raia), 2),
+            "frete": 0.0,
+            "estoque": "Disponível",
+            "fonte": "Inserção manual",
+            "url": (atualizado.get("url_raia") or "https://www.drogaraia.com.br") if atualizado else "https://www.drogaraia.com.br",
+            "observacoes": "Preço informado manualmente (sem expiração)"
+        }
+        salvar_registro(reg_raia, forcar_duplicado=True)
+        
     if atualizado:
         cotacoes = executar_coleta_produto(atualizado)
         return JSONResponse({"sucesso": True, "produto": atualizado, "cotacoes": cotacoes})
@@ -494,8 +546,40 @@ async def api_raia_confirmar_preco(dados: ConfirmarPrecoRaia):
         
     return JSONResponse({
         "sucesso": True,
-        "mensagem": "Preço da Droga Raia registrado com validade de 3 dias!",
+        "mensagem": "Preço da Droga Raia registrado com sucesso!",
         "produto_id": dados.produto_id
+    })
+
+@app.post("/api/raia/salvar-preco")
+async def api_raia_salvar_preco(dados: SalvarPrecoRaiaSimples):
+    if dados.preco <= 0:
+        return JSONResponse({"sucesso": False, "mensagem": "O valor deve ser maior que zero."}, status_code=400)
+    produto = obter_produto_por_id(dados.produto_id)
+    url_loja = produto.get("url_raia", "https://www.drogaraia.com.br") if produto else "https://www.drogaraia.com.br"
+    agora_sp = get_sp_time()
+    reg = {
+        "data_hora": agora_sp,
+        "produto_id": dados.produto_id,
+        "drogaria": "Droga Raia",
+        "filial": "Rua Conde de Bonfim, 536 — Tijuca",
+        "laboratorio": (produto.get("fabricante") or "Droga Raia") if produto else "Droga Raia",
+        "modalidade": "Online — retirada",
+        "condicao_preco": "Preço comum",
+        "valor_total": round(dados.preco, 2),
+        "quantidade_caixas": 1,
+        "custo_por_caixa": round(dados.preco, 2),
+        "frete": 0.0,
+        "estoque": "Disponível",
+        "fonte": "Inserção manual",
+        "url": url_loja,
+        "observacoes": "Preço informado manualmente (sem expiração)"
+    }
+    salvar_registro(reg, forcar_duplicado=True)
+    return JSONResponse({
+        "sucesso": True,
+        "mensagem": f"Preço de R$ {dados.preco:.2f} registrado com sucesso para Droga Raia!",
+        "produto_id": dados.produto_id,
+        "preco": round(dados.preco, 2)
     })
 
 def main():

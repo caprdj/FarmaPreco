@@ -59,37 +59,96 @@ def limpar_termo_busca(nome: str, dosagem: str = "", principio_ativo: str = "", 
         
     return re.sub(r"\s+", " ", termo).strip()
 
+TERMOS_GENERICOS = {
+    "shampoo", "condicionador", "sabonete", "solucao", "solução", "creme", "gel",
+    "pomada", "tonico", "tônico", "locao", "loção", "spray", "gotas", "capsula",
+    "capsulas", "cápsula", "cápsulas", "comprimido", "comprimidos", "comp", "cpr",
+    "frasco", "frascos", "kit", "refil", "oleo", "óleo", "serum", "sérum", "fortalecedor",
+    "fortalecedora", "hidratante", "limpeza", "facial", "capilar", "antiqueda",
+    "anticaspa", "engrossador", "reparador", "anti-idade", "antiidade", "corporal",
+    "intimo", "íntimo", "protetor", "solar", "fps", "tratamento", "uso", "diario",
+    "diário", "infantil", "adulto", "unidades", "unidade", "un", "cx", "caixa",
+    "caixas", "original", "tradicional", "plus", "extra", "suave",
+    "intenso", "concentrado", "cuidado", "cuidados", "cor", "clara", "tom", "generico",
+    "genérico", "similar", "liquido", "líquido", "com", "para", "dosador", "lata", "azul",
+    "medicamento", "revestidos", "liberacao", "prolongada", "acao", "rápida", "rapida"
+}
+
+def extrair_tokens_obrigatorios(nome_buscado: str, principio_ativo: str = "", fabricante: str = "") -> List[set]:
+    """Retorna listas de tokens distintivos de cada alternativa do produto."""
+    texto_total = f"{nome_buscado} / {principio_ativo}"
+    opcoes = re.split(r"[/,;()]+", texto_total)
+    
+    conjuntos_opcoes = []
+    for op in opcoes:
+        palavras = [w for w in re.findall(r"[a-záéíóúãõâêîôûç0-9]+", op.lower()) if len(w) >= 3 and not w.isdigit()]
+        distintivas = [w for w in palavras if w not in TERMOS_GENERICOS]
+        if distintivas:
+            conjuntos_opcoes.append(set(distintivas))
+            
+    if fabricante and str(fabricante).lower() not in ("generico", "genérico", "similar", "marca", "referencia", "referência", "outros", "não informado"):
+        fabs = [w for w in re.findall(r"[a-záéíóúãõâêîôûç]+", str(fabricante).lower()) if len(w) >= 3 and w not in TERMOS_GENERICOS]
+        if fabs:
+            conjuntos_opcoes.append(set(fabs))
+            
+    return conjuntos_opcoes
+
 def validar_candidato(
     nome_candidato: str,
     nome_buscado: str,
     dosagem_buscada: str = "",
     principio_ativo: str = "",
-    apresentacao_buscada: str = ""
+    apresentacao_buscada: str = "",
+    fabricante_buscado: str = "",
+    brand_candidato: str = ""
 ) -> bool:
-    """Valida estritamente se o produto retornado corresponde ao medicamento desejado."""
+    """Valida com rigor estrito se o produto retornado corresponde ao medicamento ou dermocosmético desejado."""
     if not nome_candidato:
         return False
     c_lower = nome_candidato.lower()
+    b_lower = (brand_candidato or "").lower()
+    texto_cand = f"{c_lower} {b_lower}"
     
-    # 1. Palavras exatas do nome ou princípio ativo (evita match de bup em ibupril)
-    nb_clean = re.sub(r"\(.*?\)", "", nome_buscado).lower()
-    palavras_nome = [p for p in re.split(r"[\s/]+", nb_clean) if len(p) >= 3 and not re.match(r"^\d", p)]
-    palavras_ativo = [p for p in re.split(r"[\s/]+", principio_ativo.lower()) if len(p) >= 4 and p not in ("cloridrato", "hemifumarato", "sodica", "sdica", "calcica")]
-    
-    tem_nome = any(contem_palavra_exata(p, c_lower) for p in palavras_nome)
-    tem_ativo = any(contem_palavra_exata(p, c_lower) for p in palavras_ativo)
-    if not (tem_nome or tem_ativo):
+    # 1. Tokens distintivos obrigatórios (marcas, patentes ou princípios ativos)
+    opcoes_tokens = extrair_tokens_obrigatorios(nome_buscado, principio_ativo, fabricante_buscado)
+    if opcoes_tokens:
+        casou_alguma_opcao = False
+        for conjunto in opcoes_tokens:
+            if all(contem_palavra_exata(tok, texto_cand) for tok in conjunto):
+                casou_alguma_opcao = True
+                break
+        if not casou_alguma_opcao:
+            return False
+
+    # 2. Incompatibilidade direta de forma farmacêutica / tipo
+    nb_lower = nome_buscado.lower()
+    if "condicionador" in nb_lower and "shampoo" in c_lower and "condicionador" not in c_lower:
         return False
-        
-    # 2. Dosagem (ex: 300mg não pode casar com 150mg)
+    if "shampoo" in nb_lower and "condicionador" in c_lower and "shampoo" not in c_lower:
+        return False
+    if any(k in nb_lower for k in ["solucao", "solução", "locao", "loção", "tonico", "tônico"]) and "shampoo" in c_lower and not any(k in c_lower for k in ["solucao", "solução", "locao", "loção", "tonico", "tônico"]):
+        return False
+    if "shampoo" in nb_lower and any(k in c_lower for k in ["locao", "loção", "tonico", "tônico"]) and "shampoo" not in c_lower:
+        return False
+    if ("íntimo" in nb_lower or "intimo" in nb_lower) and ("íntimo" not in c_lower and "intimo" not in c_lower):
+        return False
+    if "refil" not in nb_lower and "refil" in c_lower:
+        return False
+    # Kits: se o produto buscado não é kit, rejeita kits de múltiplos frascos
+    if "kit" not in nb_lower and "kit" in c_lower:
+        return False
+    if "kit" in nb_lower and "kit" not in c_lower and not any(u in c_lower for u in ["2 unidades", "2 un", "2 frascos", "combo", "duo", "pack"]):
+        return False
+
+    # 3. Dosagem estrita (ex: 300mg não pode casar com 150mg)
     if dosagem_buscada:
         d_alvo = dosagem_buscada.lower().replace(" ", "").replace("µg", "mcg")
-        d_candidato = [x.replace(" ", "").replace("µg", "mcg") for x in re.findall(r"(\d+(?:[.,]\d+)?\s*(?:mg|mcg|g|ui|ml))", c_lower)]
+        d_candidato = [x.replace(" ", "").replace("µg", "mcg") for x in re.findall(r"(\d+(?:[.,]\d+)?\s*(?:mg|mcg|g|ui|ml|fps))", c_lower)]
         if d_candidato and d_alvo not in d_candidato:
             return False
 
-    # 3. Volume ou Quantidade de comprimidos (30 comp vs 60 comp)
-    alvo_vols = extrair_volume_ou_qtd(f"{nome_buscado} {apresentacao_buscada}")
+    # 4. Volume ou Quantidade de comprimidos (30 comp vs 60 comp, 200ml vs 400ml)
+    alvo_vols = extrair_volume_ou_qtd(f"{nome_buscado} {dosagem_buscada} {apresentacao_buscada}")
     cand_vols = extrair_volume_ou_qtd(nome_candidato)
     if alvo_vols and cand_vols:
         if not (alvo_vols & cand_vols):
@@ -218,15 +277,50 @@ def consultar_vtex_ean(domain: str, ean: str) -> Optional[Dict[str, Any]]:
         pass
     return None
 
+def calcular_score_relevancia(
+    cand: Dict[str, Any],
+    nome_alvo: str,
+    dosagem_alvo: str = "",
+    ativo_alvo: str = "",
+    apresentacao_alvo: str = "",
+    fabricante_alvo: str = ""
+) -> float:
+    score = 0.0
+    c_nome = cand["produto"].lower()
+    c_brand = (cand.get("laboratorio") or "").lower()
+    texto_total = f"{c_nome} {c_brand}"
+    
+    # 1. Tokens distintivos presentes
+    opcoes = extrair_tokens_obrigatorios(nome_alvo, ativo_alvo, fabricante_alvo)
+    for conjunto in opcoes:
+        if all(contem_palavra_exata(tok, texto_total) for tok in conjunto):
+            score += 50.0
+            break
+
+    # 2. Fabricante / Brand match
+    if fabricante_alvo and str(fabricante_alvo).lower() not in ("generico", "genérico", "similar", "marca", "referencia", "referência", "outros", "não informado"):
+        fab_tokens = [f.lower() for f in re.split(r"[\s/]+", str(fabricante_alvo)) if len(f) >= 3 and f.lower() not in TERMOS_GENERICOS]
+        if any(ft in c_brand or ft in c_nome for ft in fab_tokens):
+            score += 30.0
+
+    # 3. Volume / Quantidade exata match
+    alvo_vols = extrair_volume_ou_qtd(f"{nome_alvo} {dosagem_alvo} {apresentacao_alvo}")
+    cand_vols = extrair_volume_ou_qtd(c_nome)
+    if alvo_vols and cand_vols and (alvo_vols & cand_vols):
+        score += 20.0
+        
+    return score
+
 def consultar_vtex_search(
     domain: str,
     termo: str,
     nome_alvo: str,
     dosagem_alvo: str = "",
     ativo_alvo: str = "",
-    apresentacao_alvo: str = ""
+    apresentacao_alvo: str = "",
+    fabricante_alvo: str = ""
 ) -> Optional[Dict[str, Any]]:
-    """Busca textual no catálogo VTEX aplicando validação estrita de candidatos."""
+    """Busca textual no catálogo VTEX aplicando validação estrita e ordenação por relevância garantida."""
     try:
         url = f"https://{domain}/api/catalog_system/pub/products/search/{urllib.parse.quote(termo)}"
         resp = requests.get(url, headers=HEADERS_DEFAULT, timeout=15)
@@ -236,7 +330,16 @@ def consultar_vtex_search(
                 candidatos_validos = []
                 for p in produtos:
                     pname = p.get("productName", "")
-                    if not validar_candidato(pname, nome_alvo, dosagem_alvo, ativo_alvo, apresentacao_alvo):
+                    pbrand = p.get("brand", "")
+                    if not validar_candidato(
+                        nome_candidato=pname,
+                        nome_buscado=nome_alvo,
+                        dosagem_buscada=dosagem_alvo,
+                        principio_ativo=ativo_alvo,
+                        apresentacao_buscada=apresentacao_alvo,
+                        fabricante_buscado=fabricante_alvo,
+                        brand_candidato=pbrand
+                    ):
                         continue
                     items = p.get("items", [])
                     if items:
@@ -250,7 +353,7 @@ def consultar_vtex_search(
                                 promo = extrair_promocao(offer, preco_float)
                                 item_candidato = {
                                     "produto": pname,
-                                    "laboratorio": p.get("brand") or "",
+                                    "laboratorio": pbrand or "",
                                     "preco_online": preco_float,
                                     "preco_referencia": round(float(offer.get("ListPrice")), 2) if offer.get("ListPrice") else None,
                                     "disponivel": bool(offer.get("IsAvailable", True)),
@@ -258,12 +361,17 @@ def consultar_vtex_search(
                                     "url": p.get("link") or "",
                                     "promocao": promo
                                 }
+                                score = calcular_score_relevancia(
+                                    item_candidato, nome_alvo, dosagem_alvo, ativo_alvo, apresentacao_alvo, fabricante_alvo
+                                )
+                                item_candidato["score"] = score
                                 candidatos_validos.append(item_candidato)
 
                 if candidatos_validos:
-                    # Se tiver mais de um, preferir aquele com preço varejo comum (menor preço)
-                    candidatos_validos.sort(key=lambda x: x["preco_online"])
-                    return candidatos_validos[0]
+                    candidatos_validos.sort(key=lambda x: (-x["score"], x["preco_online"]))
+                    melhor = candidatos_validos[0]
+                    if melhor["score"] >= 30.0 or not extrair_tokens_obrigatorios(nome_alvo, ativo_alvo, fabricante_alvo):
+                        return melhor
     except Exception:
         pass
     return None
@@ -289,7 +397,7 @@ def consultar_pacheco(url: Optional[str] = None, produto: Optional[Dict[str, Any
     # Tier 1: Busca pelo código de barras EAN oficial
     if ean and ean not in ("0", ""):
         res_ean = consultar_vtex_ean("www.drogariaspacheco.com.br", ean)
-        if res_ean and validar_candidato(res_ean["produto"], nome_alvo, dosagem_alvo, ativo_alvo, apresentacao_alvo):
+        if res_ean and validar_candidato(res_ean["produto"], nome_alvo, dosagem_alvo, ativo_alvo, apresentacao_alvo, fabricante_padrao, res_ean.get("laboratorio", "")):
             return {
                 "sucesso": True,
                 "drogaria": "Drogarias Pacheco",
@@ -314,7 +422,7 @@ def consultar_pacheco(url: Optional[str] = None, produto: Optional[Dict[str, Any
                 preco_online, preco_referencia, nome_prod, sku_id, disponivel, lab = extrair_preco_html(resp.text)
                 if preco_online and preco_online > 0:
                     nome_final = nome_prod or nome_alvo
-                    if validar_candidato(nome_final, nome_alvo, dosagem_alvo, ativo_alvo, apresentacao_alvo):
+                    if validar_candidato(nome_final, nome_alvo, dosagem_alvo, ativo_alvo, apresentacao_alvo, fabricante_padrao, lab or ""):
                         return {
                             "sucesso": True,
                             "drogaria": "Drogarias Pacheco",
@@ -335,7 +443,7 @@ def consultar_pacheco(url: Optional[str] = None, produto: Optional[Dict[str, Any
 
     # Tier 3: Busca textual no catálogo da Pacheco com termo limpo e validação
     termo = limpar_termo_busca(nome_alvo, dosagem_alvo, ativo_alvo, apresentacao_alvo)
-    res_busca = consultar_vtex_search("www.drogariaspacheco.com.br", termo, nome_alvo, dosagem_alvo, ativo_alvo, apresentacao_alvo)
+    res_busca = consultar_vtex_search("www.drogariaspacheco.com.br", termo, nome_alvo, dosagem_alvo, ativo_alvo, apresentacao_alvo, fabricante_padrao)
     if res_busca:
         return {
             "sucesso": True,
@@ -380,7 +488,7 @@ def consultar_venancio(ean: str = "", produto: Optional[Dict[str, Any]] = None) 
     # Tier 1: Busca pelo código de barras EAN oficial
     if ean and ean not in ("0", ""):
         res_ean = consultar_vtex_ean("www.drogariavenancio.com.br", ean)
-        if res_ean and validar_candidato(res_ean["produto"], nome_alvo, dosagem_alvo, ativo_alvo, apresentacao_alvo):
+        if res_ean and validar_candidato(res_ean["produto"], nome_alvo, dosagem_alvo, ativo_alvo, apresentacao_alvo, fabricante_padrao, res_ean.get("laboratorio", "")):
             return {
                 "sucesso": True,
                 "drogaria": "Drogaria Venancio",
@@ -405,7 +513,7 @@ def consultar_venancio(ean: str = "", produto: Optional[Dict[str, Any]] = None) 
                 preco_online, preco_referencia, nome_prod, sku_id, disponivel, lab = extrair_preco_html(resp.text)
                 if preco_online and preco_online > 0:
                     nome_final = nome_prod or nome_alvo
-                    if validar_candidato(nome_final, nome_alvo, dosagem_alvo, ativo_alvo, apresentacao_alvo):
+                    if validar_candidato(nome_final, nome_alvo, dosagem_alvo, ativo_alvo, apresentacao_alvo, fabricante_padrao, lab or ""):
                         return {
                             "sucesso": True,
                             "drogaria": "Drogaria Venancio",
@@ -426,7 +534,7 @@ def consultar_venancio(ean: str = "", produto: Optional[Dict[str, Any]] = None) 
 
     # Tier 3: Busca textual no catálogo da Venancio com termo limpo e validação
     termo = limpar_termo_busca(nome_alvo, dosagem_alvo, ativo_alvo, apresentacao_alvo)
-    res_busca = consultar_vtex_search("www.drogariavenancio.com.br", termo, nome_alvo, dosagem_alvo, ativo_alvo, apresentacao_alvo)
+    res_busca = consultar_vtex_search("www.drogariavenancio.com.br", termo, nome_alvo, dosagem_alvo, ativo_alvo, apresentacao_alvo, fabricante_padrao)
     if res_busca:
         return {
             "sucesso": True,

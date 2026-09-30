@@ -317,20 +317,10 @@ def obter_status_prints_raia(produto_id: Optional[str] = None) -> List[Dict[str,
             horas_restantes = max(0.0, round((VALIDADE_PRINT_DIAS * 86400 - diff_segundos) / 3600, 1))
             dias_restantes = max(0.0, round(horas_restantes / 24, 1))
             
-            expirado = diff_segundos >= (VALIDADE_PRINT_DIAS * 86400)
-            
-            if expirado:
-                status_tipo = "expirado"
-                badge_class = "bg-rose-100 text-rose-800 border-rose-300"
-                msg_validade = f"Expirado há {max(0.1, dias_decorridos - VALIDADE_PRINT_DIAS):.1f} dia(s) (necessário novo print)"
-            elif horas_restantes <= 24:
-                status_tipo = "vencendo"
-                badge_class = "bg-amber-100 text-amber-800 border-amber-300"
-                msg_validade = f"Vence em {horas_restantes:.0f}h (enviar novo print em breve)"
-            else:
-                status_tipo = "valido"
-                badge_class = "bg-emerald-100 text-emerald-800 border-emerald-300"
-                msg_validade = f"Válido por mais {dias_restantes:.1f} dia(s)"
+            expirado = False
+            status_tipo = "valido"
+            badge_class = "bg-emerald-100 text-emerald-800 border-emerald-300"
+            msg_validade = f"Preço cadastrado em {dt_upload.strftime('%d/%m/%Y')}"
                 
             custo_caixa = float(ultimo.get("custo_por_caixa", 0.0))
             url_comprovante = str(ultimo.get("url", ""))
@@ -345,10 +335,10 @@ def obter_status_prints_raia(produto_id: Optional[str] = None) -> List[Dict[str,
                 "tem_cotacao": True,
                 "data_upload": dt_upload.strftime("%d/%m/%Y %H:%M"),
                 "dias_decorridos": dias_decorridos,
-                "dias_restantes": dias_restantes,
-                "horas_restantes": horas_restantes,
-                "expirado": expirado,
-                "status_tipo": status_tipo,
+                "dias_restantes": 999,
+                "horas_restantes": 999,
+                "expirado": False,
+                "status_tipo": "valido",
                 "badge_class": badge_class,
                 "mensagem_validade": msg_validade,
                 "preco_por_caixa": custo_caixa,
@@ -368,10 +358,10 @@ def obter_status_prints_raia(produto_id: Optional[str] = None) -> List[Dict[str,
                 "dias_decorridos": None,
                 "dias_restantes": 0,
                 "horas_restantes": 0,
-                "expirado": True,
-                "status_tipo": "sem_print",
+                "expirado": False,
+                "status_tipo": "sem_preco",
                 "badge_class": "bg-slate-100 text-slate-700 border-slate-300",
-                "mensagem_validade": "Nenhum print enviado ainda (necessário enviar)",
+                "mensagem_validade": "Sem preço cadastrado",
                 "preco_por_caixa": None,
                 "laboratorio": None,
                 "url_comprovante": "",

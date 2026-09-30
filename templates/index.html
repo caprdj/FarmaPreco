@@ -121,8 +121,7 @@
                 <i class="fa-solid fa-chart-line text-cyan-600"></i> Comparador de Farmácias
             </button>
             <button onclick="trocarAba('raia')" id="tab-raia" class="tab-btn pb-3 px-3 text-slate-500 hover:text-slate-800 border-b-2 border-transparent flex items-center gap-1.5 whitespace-nowrap">
-                <i class="fa-solid fa-camera text-rose-500"></i> Droga Raia (Prints 3d)
-                <span id="tabBadgeRaia" class="hidden text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-rose-500 text-white">!</span>
+                <i class="fa-solid fa-tags text-rose-500"></i> Droga Raia
             </button>
             <button onclick="trocarAba('cadastro')" id="tab-cadastro" class="tab-btn pb-3 px-3 text-slate-500 hover:text-slate-800 border-b-2 border-transparent flex items-center gap-1.5 whitespace-nowrap">
                 <i class="fa-solid fa-folder-plus text-cyan-600"></i> Gerenciar Medicamentos & Produtos
@@ -203,7 +202,7 @@
                 <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] font-bold text-rose-700 uppercase">Droga Raia</span>
-                        <span id="badgeCestaStatusRaia" class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600">Prints 3d</span>
+                        <span id="badgeCestaStatusRaia" class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600">Preços Raia</span>
                     </div>
                     <div class="text-lg font-black text-slate-900 mt-1" id="cestaTotalRaia">R$ 0,00</div>
                     <div class="text-[10px] text-slate-500 mt-0.5">R. Cde. Bonfim, 536</div>
@@ -232,7 +231,7 @@
                                 <th class="px-3.5 py-2.5 border-b border-slate-200">Laboratório / Marca</th>
                                 <th class="px-3 py-2.5 text-right border-b border-slate-200">Drogaria Venancio</th>
                                 <th class="px-3 py-2.5 text-right border-b border-slate-200">Drogarias Pacheco</th>
-                                <th class="px-3 py-2.5 text-right border-b border-slate-200">Droga Raia (Prints 3d)</th>
+                                <th class="px-3 py-2.5 text-right border-b border-slate-200">Droga Raia</th>
                                 <th class="px-3 py-2.5 text-center border-b border-slate-200">Melhor Opção</th>
                                 <th class="px-3 py-2.5 text-center border-b border-slate-200">Ações</th>
                                 <th class="px-3.5 py-3 text-center whitespace-nowrap bg-emerald-50/80 border-b border-slate-200 min-w-[130px]">
@@ -615,6 +614,10 @@
                                 <label class="block text-xs font-semibold text-slate-700 mb-1">Código EAN / Barras (opcional):</label>
                                 <input type="text" id="cadEan" placeholder="Ex: 7896422506250" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-cyan-500">
                             </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-rose-700 mb-1">Preço Droga Raia R$ (opcional):</label>
+                                <input type="number" step="0.01" id="cadPrecoRaia" placeholder="Ex: 29.90" class="w-full border border-rose-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-rose-500 bg-rose-50/20">
+                            </div>
                         </div>
 
                         <!-- URLs Opcionais -->
@@ -748,9 +751,15 @@
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Código EAN (Barras):</label>
-                        <input type="text" id="editEan" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-amber-500">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Código EAN (Barras):</label>
+                            <input type="text" id="editEan" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-rose-700 mb-1">Preço Droga Raia R$ (opcional):</label>
+                            <input type="number" step="0.01" id="editPrecoRaia" placeholder="Ex: 29.90" class="w-full border border-rose-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-rose-500 bg-rose-50/20">
+                        </div>
                     </div>
 
                     <!-- Links de Farmácias -->
@@ -775,20 +784,69 @@
             </div>
         </div>
 
+        <!-- Modal Rápido: Inserir / Editar Preço Droga Raia -->
+        <div id="modalPrecoRaia" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-base">
+                            <i class="fa-solid fa-tags"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-900 text-sm">Droga Raia — Inserir Preço</h3>
+                            <p class="text-[11px] text-slate-500">Atualização direta e permanente sem expiração</p>
+                        </div>
+                    </div>
+                    <button onclick="fecharModalPrecoRaia()" class="text-slate-400 hover:text-slate-600 text-lg p-1">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <form id="formPrecoRaia" onsubmit="salvarPrecoRaiaModal(event)" class="space-y-4">
+                    <input type="hidden" id="raiaModalProdutoId" value="">
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Medicamento / Produto:</label>
+                        <div id="raiaModalNomeProd" class="text-sm font-bold text-slate-900 bg-slate-50 border border-slate-200 rounded-xl p-3">
+                            —
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Preço Unitário na Droga Raia (R$):</label>
+                        <div class="relative">
+                            <span class="absolute left-3.5 top-2.5 text-xs font-bold text-slate-400">R$</span>
+                            <input type="number" step="0.01" min="0.01" id="raiaModalPreco" required placeholder="0,00" class="w-full border-2 border-slate-300 focus:border-rose-500 rounded-xl pl-10 pr-3 py-2 text-base font-black text-slate-900 focus:ring-0">
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-1">Este valor será utilizado na sua cesta de compras e comparativos.</p>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                        <button type="button" onclick="fecharModalPrecoRaia()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition">
+                            Cancelar
+                        </button>
+                        <button type="submit" id="btnSalvarPrecoRaiaModal" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow transition flex items-center gap-1.5 active:scale-95">
+                            <i class="fa-solid fa-check"></i> Salvar Preço
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- ========================================== -->
-        <!-- ABA 4: DROGA RAIA (PRINTS & VALIDADE 3 DIAS) -->
+        <!-- ABA 4: DROGA RAIA (INSERÇÃO DIRETA DE PREÇOS) -->
         <!-- ========================================== -->
         <section id="aba-raia" class="hidden space-y-6">
-            <!-- Header explicativo da política de 3 dias -->
+            <!-- Header explicativo moderno -->
             <div class="bg-gradient-to-r from-rose-900 via-rose-800 to-red-700 text-white rounded-2xl p-5 shadow-sm">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div class="max-w-2xl">
                         <span class="text-[11px] font-bold uppercase tracking-wider bg-white/20 text-rose-100 px-2 py-0.5 rounded">
-                            Droga Raia • Validade Rigorosa de 3 Dias
+                            Droga Raia • Cotação Permanente
                         </span>
-                        <h2 class="text-xl font-bold mt-1">Upload de Prints da Tela & OCR de Preços</h2>
+                        <h2 class="text-xl font-bold mt-1">Preços Droga Raia</h2>
                         <p class="text-xs text-rose-100 mt-1">
-                            Envie prints de tela com os nomes e valores dos medicamentos. O FarmaPreço extrai os preços automaticamente via OCR nativo. As cotações da Droga Raia <strong>expiram após 3 dias (72h)</strong> da data do upload, sendo necessário enviar novos prints para renovar.
+                            Insira ou atualize o preço de qualquer item diretamente no campo de valor. Os preços ficam salvos permanentemente sem expiração e são utilizados na sua lista de compras.
                         </p>
                     </div>
                     <div class="flex items-center gap-2">
@@ -799,179 +857,36 @@
                 </div>
             </div>
 
-            <!-- Grid: Esquerda Upload e Confirmação OCR, Direita Painel de Validade -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-                <!-- Coluna Esquerda: Upload do Print e Confirmação OCR (5 cols) -->
-                <div class="lg:col-span-5 space-y-5">
-                    
-                    <!-- Card de Upload / Dropzone -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
-                        <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
-                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                                <i class="fa-solid fa-cloud-arrow-up text-rose-600"></i>
-                                Enviar Print da Tela
-                            </h3>
-                            <span class="text-[10px] bg-rose-50 text-rose-700 font-bold px-2 py-0.5 rounded-full border border-rose-200">
-                                OCR Inteligente
-                            </span>
-                        </div>
-
-                        <!-- Seleção do Medicamento -->
-                        <div class="mb-3">
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Medicamento do Print:</label>
-                            <select id="raiaUploadMedicamento" class="w-full text-xs font-semibold text-slate-900 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 focus:ring-rose-500 focus:border-rose-500">
-                                <option value="">🔍 Detectar automaticamente pelo OCR do Print</option>
-                                {% for p in produtos %}
-                                <option value="{{ p.produto_id }}">
-                                    {{ p.nome }} {{ p.dosagem }} ({{ p.fabricante }})
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <!-- Dropzone interativo com suporte a Ctrl+V -->
-                        <div id="dropzonePrint" 
-                             ondragover="tratarDragOver(event)" 
-                             ondragleave="tratarDragLeave(event)" 
-                             ondrop="tratarDrop(event)"
-                             onclick="document.getElementById('inputArquivoPrint').click()"
-                             tabindex="0"
-                             class="border-2 border-dashed border-slate-300 hover:border-rose-500 bg-slate-50 hover:bg-rose-50/40 rounded-2xl p-6 text-center cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-rose-400">
-                            
-                            <input type="file" id="inputArquivoPrint" accept="image/*" class="hidden" onchange="tratarArquivoSelecionado(event)">
-                            
-                            <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 mx-auto flex items-center justify-center text-xl mb-3 shadow-inner">
-                                <i class="fa-regular fa-image"></i>
-                            </div>
-                            
-                            <p class="text-xs font-bold text-slate-800">Clique para escolher a imagem</p>
-                            <p class="text-[11px] text-slate-500 mt-1">ou arraste e solte o print (PNG, JPG, WEBP)</p>
-                            
-                            <div class="mt-3 inline-flex items-center gap-1.5 bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold px-2.5 py-1 rounded-lg">
-                                <i class="fa-solid fa-paste"></i>
-                                <span>Você também pode tirar print e colar aqui com <strong>Ctrl + V</strong></span>
-                            </div>
-                        </div>
-
-                        <!-- Spinner de processamento OCR -->
-                        <div id="loadingOcr" class="hidden mt-4 p-4 rounded-xl bg-rose-50 border border-rose-200 text-center">
-                            <i class="fa-solid fa-spinner fa-spin text-rose-600 text-2xl mb-2"></i>
-                            <div class="text-xs font-bold text-rose-900">Processando print com OCR nativo...</div>
-                            <div class="text-[11px] text-rose-700 mt-0.5">Identificando medicamento, valores em R$, ofertas e laboratório</div>
-                        </div>
+            <!-- Painel de Gerenciamento de Preços da Droga Raia -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-3">
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-tags text-rose-600"></i>
+                            Tabela de Preços por Medicamento / Produto
+                        </h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5">
+                            Digite o valor praticado na Droga Raia e clique em Salvar para atualizar na hora.
+                        </p>
                     </div>
-
-                    <!-- Card de Resultado e Confirmação do Preço (visível após envio do print) -->
-                    <div id="cardConfirmacaoOcr" class="hidden bg-white rounded-2xl shadow-sm border-2 border-emerald-400 p-5 space-y-4">
-                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                            <div class="flex items-center gap-2">
-                                <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">
-                                    <i class="fa-solid fa-check"></i>
-                                </div>
-                                <h4 class="font-bold text-slate-900 text-xs sm:text-sm">Dados Detectados no Print</h4>
-                            </div>
-                            <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
-                                Pronto para Salvar
-                            </span>
+                    <div class="flex items-center gap-2">
+                        <div class="relative">
+                            <input type="text" id="filtroBuscaRaia" oninput="filtrarListaRaia()" placeholder="Filtrar item..." class="text-xs border border-slate-200 rounded-xl pl-8 pr-3 py-1.5 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-rose-500 w-44 sm:w-56">
+                            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
                         </div>
-
-                        <!-- Miniatura do Print Clicável -->
-                        <div class="relative group rounded-xl overflow-hidden border border-slate-200 bg-slate-100 max-h-48 flex items-center justify-center cursor-pointer" onclick="abrirModalPrint(document.getElementById('ocrUrlComprovante').value, document.getElementById('ocrNomeMedicamento').innerText)">
-                            <img id="previewMiniaturaPrint" src="" alt="Print da Droga Raia" class="object-cover max-h-48 w-full group-hover:opacity-90 transition">
-                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-bold transition">
-                                <i class="fa-solid fa-magnifying-glass-plus mr-1"></i> Ver print completo
-                            </div>
-                        </div>
-
-                        <!-- Form para confirmação / ajuste dos dados -->
-                        <form id="formConfirmarOcr" onsubmit="confirmarPrecoOcr(event)" class="space-y-3">
-                            <input type="hidden" id="ocrProdutoId" value="">
-                            <input type="hidden" id="ocrUrlComprovante" value="">
-
-                            <div>
-                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Medicamento Vinculado:</label>
-                                <div id="ocrNomeMedicamento" class="text-xs font-black text-rose-900 bg-rose-50 p-2.5 rounded-lg border border-rose-200">
-                                    —
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Preço Caixa (R$):</label>
-                                    <input type="number" step="0.01" id="ocrPrecoUnitario" required class="w-full text-xs font-black text-slate-900 bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 focus:ring-emerald-500">
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Laboratório / Marca:</label>
-                                    <input type="text" id="ocrLaboratorio" required class="w-full text-xs font-semibold text-slate-900 bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 focus:ring-emerald-500">
-                                </div>
-                            </div>
-
-                            <!-- Promoção detectada -->
-                            <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-3">
-                                <div class="flex items-center gap-2 mb-1.5">
-                                    <input type="checkbox" id="ocrTemPromo" onchange="togglePromoOcr()" class="rounded border-amber-300 text-amber-600">
-                                    <label for="ocrTemPromo" class="text-[11px] font-bold text-amber-900 cursor-pointer">Promoção por quantidade (ex: Leve 4 por X)</label>
-                                </div>
-                                <div id="ocrCamposPromo" class="hidden grid grid-cols-2 gap-2 pt-2 border-t border-amber-200 text-xs">
-                                    <div>
-                                        <label class="block text-[10px] font-semibold text-amber-900 mb-0.5">Qtd Mínima:</label>
-                                        <input type="number" id="ocrQtdPromo" value="4" min="2" class="w-full border border-amber-300 rounded-lg px-2 py-1 bg-white text-xs">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[10px] font-semibold text-amber-900 mb-0.5">Preço Unitário Promo (R$):</label>
-                                        <input type="number" step="0.01" id="ocrPrecoPromo" class="w-full border border-amber-300 rounded-lg px-2 py-1 bg-white text-xs">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-[11px] font-bold text-slate-700 mb-1">Estoque na Filial (Tijuca):</label>
-                                <select id="ocrEstoque" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5">
-                                    <option value="Disponível para retirada">Disponível para retirada</option>
-                                    <option value="Disponível na loja">Disponível na loja</option>
-                                    <option value="Não confirmado">Não confirmado</option>
-                                </select>
-                            </div>
-
-                            <button type="submit" id="btnConfirmarOcr" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs sm:text-sm shadow transition flex items-center justify-center gap-2 active:scale-98">
-                                <i class="fa-solid fa-circle-check"></i> Confirmar Cotação (Válida por 3 Dias)
-                            </button>
-                        </form>
+                        <button onclick="carregarStatusPrintsRaia()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-arrows-rotate"></i> Atualizar
+                        </button>
                     </div>
-
                 </div>
 
-                <!-- Coluna Direita: Dashboard de Validade dos 7 Medicamentos (7 cols) -->
-                <div class="lg:col-span-7 space-y-4">
-                    
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-4 border-b border-slate-100 gap-2">
-                            <div>
-                                <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
-                                    <i class="fa-solid fa-calendar-check text-rose-600"></i>
-                                    Validade das Cotações dos Medicamentos (Política de 3 Dias)
-                                </h3>
-                                <p class="text-[11px] text-slate-500 mt-0.5">
-                                    Acompanhe a vigência de cada cotação. Medicamentos expirados necessitam de novo print.
-                                </p>
-                            </div>
-                            <button onclick="carregarStatusPrintsRaia()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 self-start sm:self-auto">
-                                <i class="fa-solid fa-arrows-rotate"></i> Atualizar Status
-                            </button>
-                        </div>
-
-                        <!-- Lista de Cards de Validade -->
-                        <div id="listaStatusRaia" class="space-y-3">
-                            <div class="text-center py-8 text-slate-400">
-                                <i class="fa-solid fa-spinner fa-spin text-lg mb-2"></i>
-                                <p>Carregando status dos prints...</p>
-                            </div>
-                        </div>
+                <!-- Lista de Itens -->
+                <div id="listaStatusRaia" class="space-y-2.5">
+                    <div class="text-center py-8 text-slate-400">
+                        <i class="fa-solid fa-spinner fa-spin text-lg mb-2"></i>
+                        <p>Carregando medicamentos...</p>
                     </div>
-
                 </div>
-
             </div>
         </section>
 
@@ -2044,7 +1959,16 @@
             document.getElementById("editEan").value = p.ean || "";
             document.getElementById("editUrlPacheco").value = p.url_pacheco || "";
             document.getElementById("editUrlVenancio").value = p.url_venancio || "";
-                        document.getElementById("editUrlRaia").value = p.url_raia || "";
+            document.getElementById("editUrlRaia").value = p.url_raia || "";
+
+            let precoRaiaAtual = "";
+            if (cestaCache && cestaCache.itens) {
+                const it = cestaCache.itens.find(x => x.produto_id === p.produto_id);
+                if (it && it.detalhes_farmacias && it.detalhes_farmacias["Droga Raia"]) {
+                    precoRaiaAtual = it.detalhes_farmacias["Droga Raia"].unitario || "";
+                }
+            }
+            document.getElementById("editPrecoRaia").value = precoRaiaAtual;
 
             const modal = document.getElementById("modalEditarProduto");
             if (modal) modal.classList.remove("hidden");
@@ -2074,8 +1998,13 @@
                 ean: document.getElementById("editEan").value.trim(),
                 url_pacheco: document.getElementById("editUrlPacheco").value.trim(),
                 url_venancio: document.getElementById("editUrlVenancio").value.trim(),
-                                url_raia: document.getElementById("editUrlRaia").value.trim()
+                url_raia: document.getElementById("editUrlRaia").value.trim()
             };
+
+            const editPrecoRaiaVal = parseFloat(document.getElementById("editPrecoRaia").value);
+            if (!isNaN(editPrecoRaiaVal) && editPrecoRaiaVal > 0) {
+                dados.preco_raia = editPrecoRaiaVal;
+            }
 
             try {
                 showToast("Salvando alterações e consultando novas cotações...", "fa-spinner fa-spin text-cyan-400");
@@ -2097,6 +2026,7 @@
                     fecharModalEdicao();
                     await carregarListaMedicamentos();
                     await carregarCestaMensal();
+                    await carregarStatusPrintsRaia();
                     if (produtoAtivoId === prodId) {
                         trocarMedicamento();
                     }
@@ -2129,8 +2059,13 @@
                 ean: document.getElementById("cadEan").value.trim(),
                 url_pacheco: document.getElementById("cadUrlPacheco").value.trim(),
                 url_venancio: document.getElementById("cadUrlVenancio").value.trim(),
-                                url_raia: document.getElementById("cadUrlRaia").value.trim()
+                url_raia: document.getElementById("cadUrlRaia").value.trim()
             };
+
+            const cadPrecoRaiaVal = parseFloat(document.getElementById("cadPrecoRaia").value);
+            if (!isNaN(cadPrecoRaiaVal) && cadPrecoRaiaVal > 0) {
+                dados.preco_raia = cadPrecoRaiaVal;
+            }
 
             try {
                 showToast("Cadastrando produto e coletando preços em tempo real...", "fa-spinner fa-spin text-cyan-400");
@@ -2150,6 +2085,7 @@
                     document.getElementById("formNovoMedicamento").reset();
                     await carregarListaMedicamentos();
                     await carregarCestaMensal();
+                    await carregarStatusPrintsRaia();
                     selecionarMedicamento(novoId);
                 } else {
                     showToast("Erro ao cadastrar produto: " + (data.mensagem || "Resposta inválida"), "fa-circle-xmark text-rose-400");
@@ -2390,125 +2326,193 @@
             }
         }
 
+        let listaRaiaCache = [];
+
         async function carregarStatusPrintsRaia() {
             const container = document.getElementById("listaStatusRaia");
             if (!container) return;
-            container.innerHTML = `<div class="text-center py-6 text-slate-400"><i class="fa-solid fa-spinner fa-spin text-lg mb-1.5"></i><p>Verificando validade de 3 dias de cada print...</p></div>`;
+            container.innerHTML = `<div class="text-center py-6 text-slate-400"><i class="fa-solid fa-spinner fa-spin text-lg mb-1.5"></i><p>Carregando itens cadastrados e preços da Droga Raia...</p></div>`;
 
             try {
                 const res = await fetch("/api/raia/status");
                 const lista = await res.json();
+                listaRaiaCache = lista || [];
 
                 if (!lista || lista.length === 0) {
-                    container.innerHTML = `<div class="text-center py-6 text-slate-500">Nenhum medicamento encontrado.</div>`;
+                    container.innerHTML = `<div class="text-center py-6 text-slate-500">Nenhum item cadastrado no sistema.</div>`;
                     return;
-                }
-
-                // Atualizar badge da aba Droga Raia
-                const expiradosCount = lista.filter(x => x.expirado).length;
-                const tabBadge = document.getElementById("tabBadgeRaia");
-                const mobBadge = document.getElementById("mobtabBadgeRaia");
-                if (tabBadge) {
-                    if (expiradosCount > 0) {
-                        tabBadge.innerText = expiradosCount;
-                        tabBadge.classList.remove("hidden");
-                    } else {
-                        tabBadge.classList.add("hidden");
-                    }
-                }
-                if (mobBadge) {
-                    if (expiradosCount > 0) mobBadge.classList.remove("hidden");
-                    else mobBadge.classList.add("hidden");
                 }
 
                 container.innerHTML = "";
                 lista.forEach(item => {
                     const card = document.createElement("div");
-                    card.className = "bg-slate-50 hover:bg-white rounded-xl border border-slate-200 p-3.5 transition shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3";
+                    const nomeCompleto = `${item.nome} ${item.dosagem}`.toLowerCase();
+                    card.className = "item-raia-card bg-slate-50 hover:bg-white rounded-2xl border border-slate-200 p-4 transition shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3";
+                    card.setAttribute("data-nome", nomeCompleto);
 
-                    let badgeStatus = "";
-                    if (item.status_tipo === "valido") {
-                        badgeStatus = `<span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300"><i class="fa-solid fa-circle-check"></i> Válido por mais ${item.dias_restantes}d</span>`;
-                    } else if (item.status_tipo === "vencendo") {
-                        badgeStatus = `<span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-300 animate-pulse"><i class="fa-solid fa-clock"></i> Vence em ${item.horas_restantes}h</span>`;
-                    } else if (item.status_tipo === "expirado") {
-                        const diasExp = Math.max(0.1, item.dias_decorridos - 3).toFixed(1);
-                        badgeStatus = `<span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 border border-rose-300 font-extrabold"><i class="fa-solid fa-triangle-exclamation"></i> Expirado há ${diasExp}d</span>`;
-                    } else {
-                        badgeStatus = `<span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-200 text-slate-700 border border-slate-300"><i class="fa-regular fa-image"></i> Sem print</span>`;
-                    }
+                    const statusBadge = item.tem_cotacao ? 
+                        `<span class="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300"><i class="fa-solid fa-check"></i> Cadastrado</span>` : 
+                        `<span class="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-600">Não informado</span>`;
 
-                    const infoPreco = item.tem_cotacao ? 
-                        `<strong>${formatarMoeda(item.preco_por_caixa)}</strong> <span class="text-[10px] text-slate-500 font-normal">(${item.laboratorio || 'Marca'})</span>` : 
-                        `<span class="text-slate-400">Pendente de print</span>`;
+                    const precoFormatado = item.tem_cotacao && item.preco_por_caixa ? 
+                        `<strong class="text-rose-700 text-sm font-black">${formatarMoeda(item.preco_por_caixa)}</strong>` : 
+                        `<span class="text-slate-400">—</span>`;
 
-                    const dataUploadInfo = item.data_upload ? 
-                        `Último print: <span class="font-medium text-slate-700">${item.data_upload}</span>` : 
-                        `Nenhum print enviado`;
+                    const dataInfo = item.data_upload ? 
+                        `<span>• Atualizado: <strong class="text-slate-700">${item.data_upload}</strong></span>` : '';
 
-                    let btnComprovante = "";
-                    if (item.url_comprovante && item.url_comprovante.includes("/prints/raia/")) {
-                        btnComprovante = `<button onclick="abrirModalPrint('${item.url_comprovante}', 'Comprovante — ${item.nome}')" class="text-xs bg-white hover:bg-slate-100 text-slate-700 font-semibold px-2.5 py-1 rounded-lg border border-slate-200 transition flex items-center gap-1 shadow-xs"><i class="fa-regular fa-image text-rose-600"></i> Ver Print</button>`;
-                    }
+                    const urlRaia = item.url_loja || `https://www.drogaraia.com.br/search?w=${encodeURIComponent(item.nome)}`;
 
                     card.innerHTML = `
                         <div class="flex items-start gap-3">
-                            <div class="w-9 h-9 rounded-xl ${item.expirado ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'} flex items-center justify-center text-sm font-bold shrink-0 mt-0.5">
-                                <i class="${item.expirado ? 'fa-solid fa-clock-rotate-left' : 'fa-solid fa-check'}"></i>
+                            <div class="w-10 h-10 rounded-xl ${item.tem_cotacao ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-50 text-rose-600'} flex items-center justify-center text-sm font-bold shrink-0 mt-0.5 shadow-2xs">
+                                <i class="${item.tem_cotacao ? 'fa-solid fa-circle-check' : 'fa-solid fa-pills'}"></i>
                             </div>
                             <div>
                                 <div class="flex items-center gap-2 flex-wrap">
-                                    <h4 class="font-bold text-slate-900 text-xs sm:text-sm">${item.nome} ${item.dosagem}</h4>
-                                    ${badgeStatus}
+                                    <h4 class="font-bold text-slate-900 text-xs sm:text-sm">${item.nome} <span class="text-cyan-800 font-black">${item.dosagem}</span></h4>
+                                    ${statusBadge}
                                 </div>
-                                <div class="text-[11px] text-slate-500 mt-0.5 flex items-center gap-2 flex-wrap">
-                                    <span>Preço Raia: ${infoPreco}</span>
+                                <div class="text-[11px] text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
+                                    <span>Laboratório: <strong>${item.fabricante || 'Marca'}</strong></span>
                                     <span>•</span>
-                                    <span>${dataUploadInfo}</span>
+                                    <span>Preço Atual: ${precoFormatado}</span>
+                                    ${dataInfo}
                                 </div>
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                            ${btnComprovante}
-                            <button onclick="selecionarMedicamentoParaPrint('${item.produto_id}')" class="text-xs ${item.expirado ? 'bg-rose-600 hover:bg-rose-700 text-white' : 'bg-slate-800 hover:bg-slate-900 text-white'} font-bold px-3 py-1.5 rounded-lg transition shadow-xs flex items-center gap-1.5 active:scale-95">
-                                <i class="fa-solid fa-camera"></i> ${item.expirado ? 'Renovar Print' : 'Novo Print'}
+                        <!-- Campo de Inserção / Edição Direta -->
+                        <div class="flex items-center gap-2 shrink-0 self-end md:self-center">
+                            <div class="relative w-32">
+                                <span class="absolute left-2.5 top-1.5 text-xs font-bold text-slate-400">R$</span>
+                                <input type="number" step="0.01" min="0.01" id="inputRaia_${item.produto_id}" placeholder="${item.tem_cotacao ? Number(item.preco_por_caixa).toFixed(2) : '0,00'}" class="w-full text-xs font-black text-slate-900 bg-white border border-slate-300 rounded-xl pl-8 pr-2 py-1.5 focus:ring-2 focus:ring-rose-500 focus:border-rose-500">
+                            </div>
+                            <button onclick="salvarPrecoRaiaInline('${item.produto_id}')" id="btnSalvarRaia_${item.produto_id}" class="text-xs bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-1.5 rounded-xl transition shadow-xs flex items-center gap-1 active:scale-95">
+                                <i class="fa-solid fa-check"></i> Salvar
                             </button>
+                            <a href="${urlRaia}" target="_blank" class="text-xs bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 font-semibold px-2.5 py-1.5 rounded-xl transition" title="Consultar no site da Droga Raia">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
                         </div>
                     `;
                     container.appendChild(card);
                 });
 
             } catch (err) {
-                container.innerHTML = `<div class="text-xs text-rose-500 py-4">Erro ao carregar status: ${err.message}</div>`;
+                container.innerHTML = `<div class="text-xs text-rose-500 py-4">Erro ao carregar lista: ${err.message}</div>`;
             }
         }
 
-        function selecionarMedicamentoParaPrint(produtoId) {
-            const select = document.getElementById("raiaUploadMedicamento");
-            if (select) select.value = produtoId;
-            const dropzone = document.getElementById("dropzonePrint");
-            if (dropzone) {
-                dropzone.scrollIntoView({ behavior: "smooth", block: "center" });
-                dropzone.focus();
+        async function salvarPrecoRaiaInline(produtoId) {
+            const input = document.getElementById(`inputRaia_${produtoId}`);
+            const btn = document.getElementById(`btnSalvarRaia_${produtoId}`);
+            if (!input) return;
+            const valor = parseFloat(input.value);
+            if (isNaN(valor) || valor <= 0) {
+                showToast("Digite um valor numérico válido maior que zero.", "fa-circle-xmark text-rose-400");
+                input.focus();
+                return;
             }
-            showToast("Medicamento selecionado para o upload do print!", "fa-hand-pointer text-cyan-400");
+            const btnOriginal = btn ? btn.innerHTML : "";
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            }
+            try {
+                const res = await fetch("/api/raia/salvar-preco", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ produto_id: produtoId, preco: valor })
+                });
+                const data = await res.json();
+                if (data.sucesso) {
+                    showToast("Preço da Droga Raia registrado com sucesso!", "fa-circle-check text-emerald-400");
+                    input.value = "";
+                    await carregarStatusPrintsRaia();
+                    await carregarCestaMensal();
+                    atualizarComparacao();
+                } else {
+                    showToast(data.mensagem || "Erro ao salvar", "fa-circle-xmark text-rose-400");
+                }
+            } catch (err) {
+                showToast("Erro de conexão: " + err.message, "fa-circle-xmark text-rose-400");
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = btnOriginal;
+                }
+            }
         }
 
-        function abrirModalPrint(url, titulo) {
-            const modal = document.getElementById("modalVisualizarPrint");
-            const img = document.getElementById("modalPrintImg");
-            const tit = document.getElementById("modalPrintTitulo");
-            if (modal && img) {
-                img.src = url;
-                if (tit) tit.innerText = titulo || "Comprovante de Preço Droga Raia";
-                modal.classList.remove("hidden");
-            }
+        function filtrarListaRaia() {
+            const termo = (document.getElementById("filtroBuscaRaia").value || "").toLowerCase().trim();
+            document.querySelectorAll(".item-raia-card").forEach(el => {
+                const nome = el.getAttribute("data-nome") || "";
+                if (!termo || nome.includes(termo)) {
+                    el.classList.remove("hidden");
+                } else {
+                    el.classList.add("hidden");
+                }
+            });
         }
 
-        function fecharModalPrint() {
-            const modal = document.getElementById("modalVisualizarPrint");
+        function abrirModalPrecoRaia(produtoId, nome, precoAtual) {
+            document.getElementById("raiaModalProdutoId").value = produtoId;
+            document.getElementById("raiaModalNomeProd").innerText = nome || "Medicamento";
+            document.getElementById("raiaModalPreco").value = precoAtual && precoAtual > 0 ? precoAtual : "";
+            const modal = document.getElementById("modalPrecoRaia");
+            if (modal) modal.classList.remove("hidden");
+            setTimeout(() => {
+                const inp = document.getElementById("raiaModalPreco");
+                if (inp) inp.focus();
+            }, 100);
+        }
+
+        function fecharModalPrecoRaia() {
+            const modal = document.getElementById("modalPrecoRaia");
             if (modal) modal.classList.add("hidden");
+        }
+
+        async function salvarPrecoRaiaModal(e) {
+            e.preventDefault();
+            const btn = document.getElementById("btnSalvarPrecoRaiaModal");
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
+
+            const produtoId = document.getElementById("raiaModalProdutoId").value;
+            const preco = parseFloat(document.getElementById("raiaModalPreco").value);
+
+            if (isNaN(preco) || preco <= 0) {
+                showToast("Digite um preço válido maior que zero.", "fa-circle-xmark text-rose-400");
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                return;
+            }
+
+            try {
+                const res = await fetch("/api/raia/salvar-preco", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ produto_id: produtoId, preco: preco })
+                });
+                const data = await res.json();
+                if (data.sucesso) {
+                    showToast("Preço da Droga Raia registrado com sucesso!", "fa-circle-check text-emerald-400");
+                    fecharModalPrecoRaia();
+                    await carregarCestaMensal();
+                    await carregarStatusPrintsRaia();
+                    atualizarComparacao();
+                } else {
+                    showToast(data.mensagem || "Erro ao salvar preço", "fa-circle-xmark text-rose-400");
+                }
+            } catch (err) {
+                showToast("Erro de conexão ao salvar: " + err.message, "fa-circle-xmark text-rose-400");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
         }
 
         function atualizarFilialPresencial() {
@@ -2756,23 +2760,29 @@
                 ` : `<span class="text-slate-400">—</span>`;
 
                 
-                let tdRaia = `<span class="text-slate-400">—</span>`;
+                const nomeEscapado = (it.nome || "").replace(/'/g, "\\'");
+                const precoUnitarioRaia = detR ? (detR.unitario || (precoR ? precoR / it.quantidade_mensal : 0)) : (precoR ? precoR / it.quantidade_mensal : 0);
+                let tdRaia = `
+                    <div class="flex flex-col items-end">
+                        <button onclick="abrirModalPrecoRaia('${it.produto_id}', '${nomeEscapado}', '')" class="text-[10px] text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2 py-1 rounded-lg font-bold transition shadow-xs">
+                            + Inserir R$
+                        </button>
+                    </div>
+                `;
                 if (precoR) {
-                    const raiaExp = detR && detR.expirado_3dias;
-                    const raiaDias = detR ? detR.dias_desde_upload : 0;
-                    const statusTag = raiaExp ? 
-                        `<div class="text-[9px] text-rose-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Expirado (${raiaDias}d)</div>` :
-                        `<div class="text-[9px] text-emerald-600 font-semibold"><i class="fa-solid fa-check"></i> Válido (${raiaDias}d)</div>`;
                     const labR = formatarLab(detR ? detR.laboratorio : '', it.fabricante);
-                        
                     tdRaia = `
-                        <div class="font-bold ${isRaiaWinner ? 'text-emerald-700' : 'text-slate-800'}">${formatarMoeda(precoR)}</div>
-                        ${it.quantidade_mensal > 1 ? `<div class="text-[10px] text-slate-400">(${it.quantidade_mensal}x ${formatarMoeda(detR ? detR.unitario : precoR / it.quantidade_mensal)})</div>` : ''}
-                        ${labR ? `<div class="text-[9px] text-slate-500 font-medium">${labR}</div>` : ''}
-                        ${statusTag}
+                        <div class="flex flex-col items-end">
+                            <div class="font-bold ${isRaiaWinner ? 'text-emerald-700' : 'text-slate-800'} flex items-center gap-1.5 justify-end">
+                                <span>${formatarMoeda(precoR)}</span>
+                                <button onclick="abrirModalPrecoRaia('${it.produto_id}', '${nomeEscapado}', ${precoUnitarioRaia})" class="text-[11px] text-slate-400 hover:text-rose-600 transition p-0.5" title="Editar preço Droga Raia">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                            </div>
+                            ${it.quantidade_mensal > 1 ? `<div class="text-[10px] text-slate-400">(${it.quantidade_mensal}x ${formatarMoeda(precoUnitarioRaia)})</div>` : ''}
+                            ${labR ? `<div class="text-[9px] text-slate-500 font-medium">${labR}</div>` : ''}
+                        </div>
                     `;
-                } else if (it.status_raia && it.status_raia.tem_cotacao) {
-                    tdRaia = `<div class="text-[10px] text-rose-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Print expirado</div>`;
                 }
 
                 const isChecked = itensSelecionadosCesta.has(it.produto_id);
@@ -2915,24 +2925,13 @@
 
                 document.getElementById("badgeTotalItensCesta").innerText = `${data.total_medicamentos} no total`;
 
-                // Alerta da Raia (> 3 dias)
+                // Status da Droga Raia
                 const bannerAlerta = document.getElementById("bannerAlertaRaiaCesta");
+                if (bannerAlerta) bannerAlerta.classList.add("hidden");
                 const badgeRaiaCard = document.getElementById("badgeCestaStatusRaia");
-                if (data.tem_raia_expirada) {
-                    if (bannerAlerta) {
-                        bannerAlerta.classList.remove("hidden");
-                        document.getElementById("bannerAlertaRaiaTexto").innerText = `${data.raia_total_expirados} item(ns) com cotação da Droga Raia vencida (> 3 dias). Envie novos prints na aba "Droga Raia" para manter a precisão.`;
-                    }
-                    if (badgeRaiaCard) {
-                        badgeRaiaCard.className = "text-[9px] font-bold px-1.5 py-0.2 rounded bg-rose-100 text-rose-700 border border-rose-300";
-                        badgeRaiaCard.innerText = "Prints Expirados";
-                    }
-                } else {
-                    if (bannerAlerta) bannerAlerta.classList.add("hidden");
-                    if (badgeRaiaCard) {
-                        badgeRaiaCard.className = "text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-700 border border-emerald-300";
-                        badgeRaiaCard.innerText = "Prints em dia";
-                    }
+                if (badgeRaiaCard) {
+                    badgeRaiaCard.className = "text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-700 border border-slate-200";
+                    badgeRaiaCard.innerText = "Preços Raia";
                 }
 
                 renderizarTabelaCesta();

@@ -97,11 +97,6 @@ def comparar_precos(
         is_raia = "raia" in str(reg["drogaria"]).lower()
         expirado_3dias = False
         dias_desde_upload = 0.0
-        if is_raia and pd.notna(reg["data_hora"]):
-            diff = (pd.Timestamp.now() - reg["data_hora"]).total_seconds()
-            dias_desde_upload = round(diff / 86400, 1)
-            if diff >= 3 * 86400:
-                expirado_3dias = True
 
         ofertas.append({
             "drogaria": str(reg["drogaria"]),
