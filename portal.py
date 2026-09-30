@@ -130,6 +130,100 @@ async def home(request: Request, produto_id: Optional[str] = None):
         }
     )
 
+def executar_coleta_produto(produto: dict) -> list:
+    if not produto:
+        return []
+    produto_id = produto.get("produto_id", "")
+    resultados = consultar_todas_automaticas(produto=produto)
+    registros_para_salvar = []
+
+    # 1. Pacheco
+    pacheco = resultados.get("pacheco", {})
+    if pacheco.get("sucesso") and pacheco.get("preco_online"):
+        reg = {
+            "data_hora": pacheco["data_hora"],
+            "produto_id": produto_id,
+            "drogaria": pacheco["drogaria"],
+            "filial": pacheco["filial"],
+            "modalidade": "Online — retirada",
+            "condicao_preco": "Preço comum",
+            "valor_total": pacheco["preco_online"],
+            "quantidade_caixas": 1,
+            "custo_por_caixa": pacheco["preco_online"],
+            "frete": 0.0,
+            "estoque": pacheco["estoque_status"],
+            "fonte": "Site — coleta automática",
+            "url": pacheco["url"],
+            "observacoes": f"Coleta automática. SKU: {pacheco.get('sku', '')}. Ref: R$ {pacheco.get('preco_referencia') or 'N/A'}"
+        }
+        registros_para_salvar.append(reg)
+
+    # 2. Venancio
+    venancio = resultados.get("venancio", {})
+    if venancio.get("sucesso") and venancio.get("preco_online"):
+        reg_v = {
+            "data_hora": venancio["data_hora"],
+            "produto_id": produto_id,
+            "drogaria": venancio["drogaria"],
+            "filial": venancio["filial"],
+            "modalidade": "Online — retirada",
+            "condicao_preco": "Preço comum",
+            "valor_total": venancio["preco_online"],
+            "quantidade_caixas": 1,
+            "custo_por_caixa": venancio["preco_online"],
+            "frete": 0.0,
+            "estoque": venancio["estoque_status"],
+            "fonte": "Site — coleta automática",
+            "url": venancio["url"],
+            "observacoes": f"Catálogo público Venancio. SKU: {venancio.get('sku', '')}. Ref: R$ {venancio.get('preco_referencia') or 'N/A'}"
+        }
+        registros_para_salvar.append(reg_v)
+        
+        promo = venancio.get("promocao")
+        if promo:
+            reg_v_promo = {
+                "data_hora": venancio["data_hora"],
+                "produto_id": produto_id,
+                "drogaria": venancio["drogaria"],
+                "filial": venancio["filial"],
+                "modalidade": "Online — retirada",
+                "condicao_preco": "Promoção por quantidade",
+                "valor_total": promo["valor_total"],
+                "quantidade_caixas": promo["quantidade_leve"],
+                "custo_por_caixa": promo["custo_por_caixa"],
+                "frete": 0.0,
+                "estoque": venancio["estoque_status"],
+                "fonte": "Site — coleta automática",
+                "url": venancio["url"],
+                "observacoes": f"Promoção {promo['descricao']} identificada no catálogo. Total: R$ {promo['valor_total']:.2f}"
+            }
+            registros_para_salvar.append(reg_v_promo)
+
+    # 3. Drogasmil
+    drogasmil = resultados.get("drogasmil", {})
+    if drogasmil.get("sucesso") and drogasmil.get("preco_online"):
+        reg_m = {
+            "data_hora": drogasmil["data_hora"],
+            "produto_id": produto_id,
+            "drogaria": drogasmil["drogaria"],
+            "filial": drogasmil["filial"],
+            "modalidade": "Online — retirada",
+            "condicao_preco": "Preço comum",
+            "valor_total": drogasmil["preco_online"],
+            "quantidade_caixas": 1,
+            "custo_por_caixa": drogasmil["preco_online"],
+            "frete": 0.0,
+            "estoque": drogasmil["estoque_status"],
+            "fonte": "Site — coleta automática",
+            "url": drogasmil["url"],
+            "observacoes": f"Catálogo Drogasmil. SKU: {drogasmil.get('sku', '')}"
+        }
+        registros_para_salvar.append(reg_m)
+
+    if registros_para_salvar:
+        salvar_multiplos_registros(registros_para_salvar)
+    return registros_para_salvar
+
 @app.get("/api/produtos")
 async def api_listar_produtos():
     produtos = carregar_produtos()
@@ -139,7 +233,8 @@ async def api_listar_produtos():
 @app.post("/api/produtos")
 async def api_cadastrar_produto(dados: NovoProduto):
     novo = cadastrar_produto(dados.model_dump())
-    return JSONResponse({"sucesso": True, "produto": novo})
+    cotacoes = executar_coleta_produto(novo)
+    return JSONResponse({"sucesso": True, "produto": novo, "cotacoes": cotacoes})
 
 @app.get("/api/produtos/{produto_id}")
 async def api_obter_produto(produto_id: str):
@@ -153,7 +248,8 @@ async def api_obter_produto(produto_id: str):
 async def api_editar_produto(produto_id: str, dados: EditarProduto):
     atualizado = atualizar_produto(produto_id, {k: v for k, v in dados.model_dump().items() if v is not None})
     if atualizado:
-        return JSONResponse({"sucesso": True, "produto": atualizado})
+        cotacoes = executar_coleta_produto(atualizado)
+        return JSONResponse({"sucesso": True, "produto": atualizado, "cotacoes": cotacoes})
     return JSONResponse({"sucesso": False, "mensagem": "Produto não encontrado"}, status_code=404)
 
 @app.delete("/api/produtos/{produto_id}")
@@ -263,115 +359,27 @@ async def api_cesta_mensal():
 @app.post("/api/coletar/todas")
 async def api_coletar_todas(produto_id: str = "MED001"):
     produto = obter_produto_por_id(produto_id)
-    resultados = consultar_todas_automaticas(produto=produto)
-    registros_para_salvar = []
-    detalhes = []
-
-    # 1. Pacheco
-    pacheco = resultados["pacheco"]
-    if pacheco.get("sucesso"):
-        reg = {
-            "data_hora": pacheco["data_hora"],
-            "produto_id": produto_id,
-            "drogaria": pacheco["drogaria"],
-            "filial": pacheco["filial"],
-            "modalidade": "Online — retirada",
-            "condicao_preco": "Preço comum",
-            "valor_total": pacheco["preco_online"],
-            "quantidade_caixas": 1,
-            "custo_por_caixa": pacheco["preco_online"],
-            "frete": 0.0,
-            "estoque": pacheco["estoque_status"],
-            "fonte": "Site — coleta automática",
-            "url": pacheco["url"],
-            "observacoes": f"Coleta automática. SKU: {pacheco.get('sku', '')}. Ref: R$ {pacheco.get('preco_referencia') or 'N/A'}"
-        }
-        registros_para_salvar.append(reg)
-        detalhes.append({"drogaria": "Drogarias Pacheco", "sucesso": True, "preco": pacheco["preco_online"]})
-    else:
-        detalhes.append({"drogaria": "Drogarias Pacheco", "sucesso": False, "erro": pacheco.get("erro")})
-
-    # 2. Venancio
-    venancio = resultados["venancio"]
-    if venancio.get("sucesso"):
-        reg_v = {
-            "data_hora": venancio["data_hora"],
-            "produto_id": produto_id,
-            "drogaria": venancio["drogaria"],
-            "filial": venancio["filial"],
-            "modalidade": "Online — retirada",
-            "condicao_preco": "Preço comum",
-            "valor_total": venancio["preco_online"],
-            "quantidade_caixas": 1,
-            "custo_por_caixa": venancio["preco_online"],
-            "frete": 0.0,
-            "estoque": venancio["estoque_status"],
-            "fonte": "Site — coleta automática",
-            "url": venancio["url"],
-            "observacoes": f"Catálogo público Venancio. SKU: {venancio.get('sku', '')}. Ref: R$ {venancio.get('preco_referencia') or 'N/A'}"
-        }
-        registros_para_salvar.append(reg_v)
-        
-        promo = venancio.get("promocao")
-        if promo:
-            reg_v_promo = {
-                "data_hora": venancio["data_hora"],
-                "produto_id": produto_id,
-                "drogaria": venancio["drogaria"],
-                "filial": venancio["filial"],
-                "modalidade": "Online — retirada",
-                "condicao_preco": "Promoção por quantidade",
-                "valor_total": promo["valor_total"],
-                "quantidade_caixas": promo["quantidade_leve"],
-                "custo_por_caixa": promo["custo_por_caixa"],
-                "frete": 0.0,
-                "estoque": venancio["estoque_status"],
-                "fonte": "Site — coleta automática",
-                "url": venancio["url"],
-                "observacoes": f"Promoção {promo['descricao']} identificada no catálogo. Total: R$ {promo['valor_total']:.2f}"
-            }
-            registros_para_salvar.append(reg_v_promo)
-
-        detalhes.append({
-            "drogaria": "Drogaria Venancio",
-            "sucesso": True,
-            "preco": venancio["preco_online"],
-            "promocao": promo["descricao"] if promo else None
-        })
-    else:
-        detalhes.append({"drogaria": "Drogaria Venancio", "sucesso": False, "erro": venancio.get("erro")})
-
-    # 3. Drogasmil
-    drogasmil = resultados["drogasmil"]
-    if drogasmil.get("sucesso"):
-        reg_m = {
-            "data_hora": drogasmil["data_hora"],
-            "produto_id": produto_id,
-            "drogaria": drogasmil["drogaria"],
-            "filial": drogasmil["filial"],
-            "modalidade": "Online — retirada",
-            "condicao_preco": "Preço comum",
-            "valor_total": drogasmil["preco_online"],
-            "quantidade_caixas": 1,
-            "custo_por_caixa": drogasmil["preco_online"],
-            "frete": 0.0,
-            "estoque": drogasmil["estoque_status"],
-            "fonte": "Site — coleta automática",
-            "url": drogasmil["url"],
-            "observacoes": f"JSON-LD Drogasmil. SKU: {drogasmil.get('sku', '')}"
-        }
-        registros_para_salvar.append(reg_m)
-        detalhes.append({"drogaria": "Drogasmil", "sucesso": True, "preco": drogasmil["preco_online"]})
-    else:
-        detalhes.append({"drogaria": "Drogasmil", "sucesso": False, "erro": drogasmil.get("erro")})
-
-    status_salvamento = salvar_multiplos_registros(registros_para_salvar)
-
+    if not produto:
+        return JSONResponse({"sucesso": False, "erro": "Produto não encontrado"}, status_code=404)
+    cotacoes = executar_coleta_produto(produto)
     return JSONResponse({
         "sucesso": True,
         "produto_id": produto_id,
-        "detalhes": detalhes,
-        "salvamento": status_salvamento
+        "total_cotacoes": len(cotacoes),
+        "cotacoes": cotacoes
+    })
+
+@app.post("/api/coletar-todas-geral")
+async def api_coletar_todas_geral():
+    produtos = carregar_produtos()
+    total_coletados = 0
+    for p in produtos:
+        cot = executar_coleta_produto(p)
+        total_coletados += len(cot)
+    return JSONResponse({
+        "sucesso": True,
+        "total_produtos": len(produtos),
+        "total_cotacoes_salvas": total_coletados
     })
 
 @app.post("/api/registrar")

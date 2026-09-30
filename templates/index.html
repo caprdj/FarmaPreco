@@ -155,8 +155,8 @@
                         <button onclick="marcarTodosCesta(false)" class="bg-white/10 hover:bg-white/20 text-white font-medium text-xs px-3 py-2 rounded-xl transition flex items-center gap-1 border border-white/20">
                             <i class="fa-regular fa-square"></i> Desmarcar Todos
                         </button>
-                        <button onclick="carregarCestaMensal()" class="bg-white text-emerald-800 hover:bg-emerald-50 font-bold text-xs px-4 py-2 rounded-xl shadow transition flex items-center gap-1.5">
-                            <i class="fa-solid fa-arrows-rotate"></i> Recalcular
+                        <button id="btnAtualizarTodasCotacoes" onclick="atualizarTodasCotacoesGeral()" class="bg-cyan-500 hover:bg-cyan-400 text-white font-bold text-xs px-4 py-2 rounded-xl shadow transition flex items-center gap-1.5" title="Consultar novos preços em tempo real na Pacheco, Venancio e Drogasmil">
+                            <i class="fa-solid fa-arrows-rotate"></i> Atualizar Cotações
                         </button>
                     </div>
                 </div>
@@ -2101,11 +2101,40 @@
         async function carregarListaMedicamentos() {
             const container = document.getElementById("listaMedicamentosCadastrados");
             try {
+                // Migração transparente de produtos LOC_ salvos anteriormente apenas no celular
+                const locaisPendentes = getLocalNovosProdutos();
+                if (locaisPendentes && locaisPendentes.length > 0) {
+                    for (const loc of locaisPendentes) {
+                        try {
+                            await fetch("/api/produtos", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    nome: loc.nome,
+                                    principio_ativo: loc.principio_ativo || "",
+                                    dosagem: loc.dosagem || "",
+                                    apresentacao: loc.apresentacao || "",
+                                    fabricante: loc.fabricante || "",
+                                    categoria: loc.categoria || "Outros",
+                                    quantidade_mensal: loc.quantidade_mensal || 1,
+                                    ean: loc.ean || "",
+                                    url_pacheco: loc.url_pacheco || "",
+                                    url_venancio: loc.url_venancio || "",
+                                    url_drogasmil: loc.url_drogasmil || "",
+                                    url_raia: loc.url_raia || ""
+                                })
+                            });
+                        } catch (e) {
+                            console.warn("Erro ao migrar produto local para servidor:", e);
+                        }
+                    }
+                    localStorage.removeItem("farmapreco_novos_produtos");
+                }
+
                 const res = await fetch("/api/produtos");
                 const baseProdutos = await res.json();
 
                 const customEdits = getLocalCustomEdits();
-                const novosProdutos = getLocalNovosProdutos();
                 const excluidos = getLocalExcluidos();
 
                 let lista = [];
@@ -2118,17 +2147,6 @@
                         lista.push({ ...bp, ...custom, isPersonalizado: true });
                     } else {
                         lista.push({ ...bp });
-                    }
-                });
-
-                // 2. Adicionar itens cadastrados exclusivamente neste aparelho
-                novosProdutos.forEach(np => {
-                    if (excluidos.has(np.produto_id)) return;
-                    const custom = customEdits[np.produto_id];
-                    if (custom) {
-                        lista.push({ ...np, ...custom, isExclusivoLocal: true });
-                    } else {
-                        lista.push({ ...np, isExclusivoLocal: true });
                     }
                 });
 
@@ -2249,7 +2267,9 @@
         async function salvarEdicaoProduto(e) {
             e.preventDefault();
             const btn = document.getElementById("btnSalvarEdicao");
+            const btnOriginal = btn.innerHTML;
             btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Atualizando cotações...';
 
             const prodId = document.getElementById("editProdutoId").value;
             const dados = {
@@ -2268,40 +2288,41 @@
             };
 
             try {
-                // Verificar se é produto criado localmente ou item do catálogo padrão
-                const novos = getLocalNovosProdutos();
-                const idx = novos.findIndex(x => x.produto_id === prodId);
-                if (idx !== -1) {
-                    novos[idx] = { ...novos[idx], ...dados };
-                    setLocalNovosProdutos(novos);
-                } else {
-                    const customEdits = getLocalCustomEdits();
-                    customEdits[prodId] = dados;
-                    setLocalCustomEdits(customEdits);
-                }
+                showToast("Salvando alterações e consultando novas cotações...", "fa-spinner fa-spin text-cyan-400");
+                const res = await fetch(`/api/produtos/${prodId}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(dados)
+                });
+                const data = await res.json();
 
-                showToast("Dosagem e dados salvos no seu aparelho!", "fa-circle-check text-emerald-400");
-                fecharModalEdicao();
-                await carregarListaMedicamentos();
-                carregarCestaMensal();
-                if (produtoAtivoId === prodId) {
-                    trocarMedicamento();
+                if (data.sucesso) {
+                    showToast("Produto atualizado e cotações renovadas com sucesso!", "fa-circle-check text-emerald-400");
+                    fecharModalEdicao();
+                    await carregarListaMedicamentos();
+                    await carregarCestaMensal();
+                    if (produtoAtivoId === prodId) {
+                        trocarMedicamento();
+                    }
+                } else {
+                    showToast("Erro ao atualizar: " + (data.mensagem || "Não foi possível salvar"), "fa-circle-xmark text-rose-400");
                 }
             } catch (err) {
-                showToast("Erro ao salvar localmente: " + err.message, "fa-circle-xmark text-rose-400");
+                showToast("Erro ao salvar produto: " + err.message, "fa-circle-xmark text-rose-400");
             } finally {
                 btn.disabled = false;
+                btn.innerHTML = btnOriginal;
             }
         }
 
         async function salvarNovoMedicamento(e) {
             e.preventDefault();
             const btn = document.getElementById("btnSalvarProd");
+            const btnOriginal = btn.innerHTML;
             btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Consultando Farmácias...';
 
-            const novoId = "LOC_" + Date.now();
             const dados = {
-                produto_id: novoId,
                 nome: document.getElementById("cadNome").value.trim(),
                 principio_ativo: document.getElementById("cadAtivo").value.trim(),
                 dosagem: document.getElementById("cadDosagem").value.trim(),
@@ -2317,49 +2338,79 @@
             };
 
             try {
-                const novos = getLocalNovosProdutos();
-                novos.push(dados);
-                setLocalNovosProdutos(novos);
+                showToast("Cadastrando produto e coletando preços em tempo real...", "fa-spinner fa-spin text-cyan-400");
+                const res = await fetch("/api/produtos", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(dados)
+                });
+                const data = await res.json();
 
-                // Marca automaticamente para compra na lista deste aparelho
-                itensSelecionadosCesta.add(novoId);
-                salvarSelecaoCesta();
+                if (data.sucesso && data.produto) {
+                    const novoId = data.produto.produto_id;
+                    itensSelecionadosCesta.add(novoId);
+                    salvarSelecaoCesta();
 
-                showToast("Item cadastrado com sucesso no seu aparelho!", "fa-circle-check text-emerald-400");
-                document.getElementById("formNovoMedicamento").reset();
-                await carregarListaMedicamentos();
-                carregarCestaMensal();
-                selecionarMedicamento(novoId);
+                    showToast("Produto cadastrado e cotações adicionadas com sucesso!", "fa-circle-check text-emerald-400");
+                    document.getElementById("formNovoMedicamento").reset();
+                    await carregarListaMedicamentos();
+                    await carregarCestaMensal();
+                    selecionarMedicamento(novoId);
+                } else {
+                    showToast("Erro ao cadastrar produto: " + (data.mensagem || "Resposta inválida"), "fa-circle-xmark text-rose-400");
+                }
             } catch (err) {
-                showToast("Erro ao cadastrar localmente.", "fa-circle-xmark text-rose-400");
+                showToast("Erro ao cadastrar produto: " + err.message, "fa-circle-xmark text-rose-400");
             } finally {
                 btn.disabled = false;
+                btn.innerHTML = btnOriginal;
             }
         }
 
         async function excluirMedicamento(id) {
-            if (!confirm("Deseja realmente remover este item da sua lista neste aparelho?")) return;
+            if (!confirm("Deseja realmente remover este medicamento do catálogo e da lista?")) return;
             try {
-                const excluidos = getLocalExcluidos();
-                excluidos.add(id);
-                setLocalExcluidos(excluidos);
-
-                const novos = getLocalNovosProdutos().filter(x => x.produto_id !== id);
-                setLocalNovosProdutos(novos);
-
-                const customEdits = getLocalCustomEdits();
-                delete customEdits[id];
-                setLocalCustomEdits(customEdits);
+                const res = await fetch(`/api/produtos/${id}`, { method: "DELETE" });
+                const data = await res.json();
 
                 itensSelecionadosCesta.delete(id);
                 salvarSelecaoCesta();
 
-                showToast("Item removido da lista deste aparelho.", "fa-circle-check text-slate-400");
+                showToast("Medicamento removido com sucesso!", "fa-circle-check text-slate-400");
                 await carregarListaMedicamentos();
-                carregarCestaMensal();
+                await carregarCestaMensal();
                 trocarMedicamento();
             } catch (err) {
                 showToast("Erro ao excluir item: " + err.message, "fa-circle-xmark text-rose-400");
+            }
+        }
+
+        async function atualizarTodasCotacoesGeral() {
+            const btn = document.getElementById("btnAtualizarTodasCotacoes");
+            let btnOriginal = "";
+            if (btn) {
+                btnOriginal = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Atualizando preços...';
+            }
+            showToast("Atualizando cotações de todos os medicamentos nas farmácias...", "fa-arrows-rotate fa-spin text-cyan-400");
+            try {
+                const res = await fetch("/api/coletar-todas-geral", { method: "POST" });
+                const data = await res.json();
+                if (data.sucesso) {
+                    showToast(`Cotações atualizadas com sucesso! (${data.total_cotacoes_salvas} ofertas coletadas)`, "fa-circle-check text-emerald-400");
+                    await carregarCestaMensal();
+                    atualizarComparacao();
+                } else {
+                    showToast("Erro ao atualizar cotações.", "fa-circle-xmark text-rose-400");
+                }
+            } catch (e) {
+                showToast("Erro na conexão ao atualizar cotações.", "fa-circle-xmark text-rose-400");
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = btnOriginal || '<i class="fa-solid fa-arrows-rotate"></i> Atualizar Cotações';
+                }
             }
         }
 
@@ -3003,7 +3054,6 @@
                 const data = await res.json();
 
                 const customEdits = getLocalCustomEdits();
-                const novosProdutos = getLocalNovosProdutos();
                 const excluidos = getLocalExcluidos();
 
                 let itensFiltrados = [];
@@ -3060,27 +3110,6 @@
                         itensFiltrados.push(itemClone);
                     });
                 }
-
-                // Adicionar produtos cadastrados localmente neste smartphone
-                novosProdutos.forEach(np => {
-                    if (excluidos.has(np.produto_id)) return;
-                    const custom = customEdits[np.produto_id] || {};
-                    const qtd = custom.quantidade_mensal || np.quantidade_mensal || 1;
-                    itensFiltrados.push({
-                        produto_id: np.produto_id,
-                        nome: custom.nome || np.nome,
-                        dosagem: custom.dosagem || np.dosagem || '',
-                        fabricante: custom.fabricante || np.fabricante || 'Geral',
-                        apresentacao: custom.apresentacao || np.apresentacao || '',
-                        categoria: custom.categoria || np.categoria || 'Geral',
-                        quantidade_mensal: qtd,
-                        melhor_preco: 0,
-                        melhor_farmacia: 'Cadastrado no celular',
-                        precos_farmacias: {},
-                        detalhes_farmacias: {},
-                        status_raia: {}
-                    });
-                });
 
                 data.itens = itensFiltrados;
                 data.total_medicamentos = itensFiltrados.length;
