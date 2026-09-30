@@ -10,7 +10,6 @@ from pydantic import BaseModel
 from services.scrapers import (
     consultar_pacheco,
     consultar_venancio,
-    consultar_drogasmil,
     consultar_todas_automaticas,
     consultar_precos_laboratorios,
     get_sp_time
@@ -202,28 +201,6 @@ def executar_coleta_produto(produto: dict) -> list:
             }
             registros_para_salvar.append(reg_v_promo)
 
-    # 3. Drogasmil
-    drogasmil = resultados.get("drogasmil", {})
-    if drogasmil.get("sucesso") and drogasmil.get("preco_online"):
-        reg_m = {
-            "data_hora": drogasmil["data_hora"],
-            "produto_id": produto_id,
-            "drogaria": drogasmil["drogaria"],
-            "filial": drogasmil["filial"],
-            "laboratorio": drogasmil.get("laboratorio") or produto.get("fabricante", "") or "Marca",
-            "modalidade": "Online — retirada",
-            "condicao_preco": "Preço comum",
-            "valor_total": drogasmil["preco_online"],
-            "quantidade_caixas": 1,
-            "custo_por_caixa": drogasmil["preco_online"],
-            "frete": 0.0,
-            "estoque": drogasmil["estoque_status"],
-            "fonte": "Site — coleta automática",
-            "url": drogasmil["url"],
-            "observacoes": f"Catálogo Drogasmil. SKU: {drogasmil.get('sku', '')}"
-        }
-        registros_para_salvar.append(reg_m)
-
     if registros_para_salvar:
         salvar_multiplos_registros(registros_para_salvar)
     return registros_para_salvar
@@ -289,13 +266,11 @@ async def api_cesta_mensal():
     totais_por_drogaria = {
         "Drogaria Venancio": 0.0,
         "Drogarias Pacheco": 0.0,
-        "Drogasmil": 0.0,
         "Droga Raia": 0.0
     }
     itens_cotados_por_drogaria = {
         "Drogaria Venancio": 0,
         "Drogarias Pacheco": 0,
-        "Drogasmil": 0,
         "Droga Raia": 0
     }
 

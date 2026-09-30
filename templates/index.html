@@ -155,7 +155,7 @@
                         <button onclick="marcarTodosCesta(false)" class="bg-white/10 hover:bg-white/20 text-white font-medium text-xs px-3 py-2 rounded-xl transition flex items-center gap-1 border border-white/20">
                             <i class="fa-regular fa-square"></i> Desmarcar Todos
                         </button>
-                        <button id="btnAtualizarTodasCotacoes" onclick="atualizarTodasCotacoesGeral()" class="bg-cyan-500 hover:bg-cyan-400 text-white font-bold text-xs px-4 py-2 rounded-xl shadow transition flex items-center gap-1.5" title="Consultar novos preços em tempo real na Pacheco, Venancio e Drogasmil">
+                        <button id="btnAtualizarTodasCotacoes" onclick="atualizarTodasCotacoesGeral()" class="bg-cyan-500 hover:bg-cyan-400 text-white font-bold text-xs px-4 py-2 rounded-xl shadow transition flex items-center gap-1.5" title="Consultar novos preços em tempo real na Pacheco e Venancio">
                             <i class="fa-solid fa-arrows-rotate"></i> Atualizar Cotações
                         </button>
                     </div>
@@ -180,8 +180,8 @@
                 </button>
             </div>
 
-            <!-- Cards de Resumo Mensal -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <!-- Cards de Resumo Mensal (4 Colunas Limpas) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <div class="bg-white rounded-2xl p-4 border-2 border-emerald-500 shadow-sm bg-emerald-50/20">
                     <span class="text-[11px] font-bold text-emerald-700 uppercase">Melhor Estratégia</span>
                     <div class="text-xl font-black text-emerald-700 mt-1" id="cestaTotalOtimizado">R$ 0,00</div>
@@ -198,12 +198,6 @@
                     <span class="text-[11px] font-bold text-slate-600 uppercase">Drogarias Pacheco</span>
                     <div class="text-lg font-black text-slate-900 mt-1" id="cestaTotalPacheco">R$ 0,00</div>
                     <div class="text-[10px] text-slate-500 mt-0.5">R. Cde. Bonfim, 580</div>
-                </div>
-
-                <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
-                    <span class="text-[11px] font-bold text-slate-600 uppercase">Drogasmil</span>
-                    <div class="text-lg font-black text-slate-900 mt-1" id="cestaTotalDrogasmil">R$ 0,00</div>
-                    <div class="text-[10px] text-slate-500 mt-0.5">Pç. Saenz Peña, 29</div>
                 </div>
 
                 <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
@@ -238,7 +232,6 @@
                                 <th class="px-3.5 py-2.5 border-b border-slate-200">Laboratório / Marca</th>
                                 <th class="px-3 py-2.5 text-right border-b border-slate-200">Drogaria Venancio</th>
                                 <th class="px-3 py-2.5 text-right border-b border-slate-200">Drogarias Pacheco</th>
-                                <th class="px-3 py-2.5 text-right border-b border-slate-200">Drogasmil</th>
                                 <th class="px-3 py-2.5 text-right border-b border-slate-200">Droga Raia (Prints 3d)</th>
                                 <th class="px-3 py-2.5 text-center border-b border-slate-200">Melhor Opção</th>
                                 <th class="px-3 py-2.5 text-center border-b border-slate-200">Ações</th>
@@ -252,7 +245,7 @@
                         </thead>
                         <tbody id="tabelaCestaBody" class="divide-y divide-slate-100">
                             <tr>
-                                <td colspan="10" class="text-center py-6 text-slate-400">Carregando lista de compras...</td>
+                                <td colspan="9" class="text-center py-6 text-slate-400">Carregando lista de compras...</td>
                             </tr>
                         </tbody>
                         <tfoot class="bg-slate-50 font-bold border-t-2 border-slate-200 text-slate-800">
@@ -265,7 +258,6 @@
                                 </td>
                                 <td id="tfootTotalVenancio" class="px-3 py-3 text-right font-black text-slate-900 border-t-2 border-slate-200">R$ 0,00</td>
                                 <td id="tfootTotalPacheco" class="px-3 py-3 text-right font-black text-slate-900 border-t-2 border-slate-200">R$ 0,00</td>
-                                <td id="tfootTotalDrogasmil" class="px-3 py-3 text-right font-black text-slate-900 border-t-2 border-slate-200">R$ 0,00</td>
                                 <td id="tfootTotalRaia" class="px-3 py-3 text-right font-black text-slate-900 border-t-2 border-slate-200">R$ 0,00</td>
                                 <td id="tfootTotalOtimizado" class="px-3 py-3 text-center font-black text-emerald-700 bg-emerald-100/70 rounded border border-emerald-200">R$ 0,00</td>
                                 <td class="border-t-2 border-slate-200"></td>
@@ -273,231 +265,6 @@
                             </tr>
                         </tfoot>
                     </table>
-                </div>
-            </div>
-
-            <!-- Card de Auditoria & Conferência do Lançamento Mensal -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
-                <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
-                    <div class="w-9 h-9 rounded-xl bg-teal-100 text-teal-800 flex items-center justify-center font-bold text-base">
-                        <i class="fa-solid fa-clipboard-check"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-extrabold text-slate-900 text-sm">Conferência do Lançamento Mensal dos Medicamentos</h4>
-                        <p class="text-xs text-slate-500">Validação das quantidades prescritas e dosagens mensais registradas</p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
-                    <!-- 1. Sertralina -->
-                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                        <div class="font-bold text-slate-900 flex items-center justify-between">
-                            <span>Sertralina 50mg</span>
-                            <span class="bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded text-[10px]">1 cx / mês</span>
-                        </div>
-                        <div class="text-[11px] text-slate-500 mt-1">30 comp • EMS / Medley • Uso contínuo diário</div>
-                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 12,99 (Venancio - EMS)</div>
-                    </div>
-
-                    <!-- 2. Bup -->
-                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                        <div class="font-bold text-slate-900 flex items-center justify-between">
-                            <span>Bup XL / XR 300mg</span>
-                            <span class="bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded text-[10px]">1 cx / mês</span>
-                        </div>
-                        <div class="text-[11px] text-slate-500 mt-1">30 comp • Eurofarma • Liberação prolongada</div>
-                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 96,53 (Venancio - Eurofarma)</div>
-                    </div>
-
-                    <!-- 3. Kalist -->
-                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                        <div class="font-bold text-slate-900 flex items-center justify-between">
-                            <span>Kalist / Dienogeste 2mg</span>
-                            <span class="bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded text-[10px]">1 cx / mês</span>
-                        </div>
-                        <div class="text-[11px] text-slate-500 mt-1">28/30 comp • EMS (genérico) ou Aché (Kalist)</div>
-                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 36,88 (Venancio - EMS)</div>
-                    </div>
-
-                    <!-- 4. Quetiapina -->
-                    <div class="p-3 rounded-xl bg-amber-50/70 border border-amber-200">
-                        <div class="font-bold text-amber-950 flex items-center justify-between">
-                            <span>Quetiapina 25mg</span>
-                            <span class="bg-amber-200 text-amber-900 px-2 py-0.5 rounded text-[10px] font-black">3 cx / mês</span>
-                        </div>
-                        <div class="text-[11px] text-amber-800 mt-1">30 comp cada (90 comp/mês) • Biolab / Eurofarma</div>
-                        <div class="text-[11px] font-bold text-emerald-800 mt-1">Total: R$ 43,50 (3x R$ 14,50 na Venancio)</div>
-                    </div>
-
-                    <!-- 5. Rosuvastatina -->
-                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                        <div class="font-bold text-slate-900 flex items-center justify-between">
-                            <span>Rosuvastatina 5mg</span>
-                            <span class="bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded text-[10px]">1 cx / mês</span>
-                        </div>
-                        <div class="text-[11px] text-slate-500 mt-1">30 comp • EMS / Medley • Uso contínuo</div>
-                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 24,00 (Drogasmil - EMS)</div>
-                    </div>
-
-                    <!-- 6. Dipirona 1g -->
-                    <div class="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200">
-                        <div class="font-bold text-slate-900 flex items-center justify-between">
-                            <span>Dipirona 1g (Novalgina / Lisador)</span>
-                            <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">1 cx / mês</span>
-                        </div>
-                        <div class="text-[11px] text-emerald-900 mt-1">10 comp • Restrito: Novalgina (Sanofi) ou Lisador (Hypera)</div>
-                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 18,70 (Drogasmil - Novalgina Sanofi)</div>
-                    </div>
-
-                    <!-- 7. Levotiroxina -->
-                    <div class="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200">
-                        <div class="font-bold text-slate-900 flex items-center justify-between">
-                            <span>Levotiroxina (Puran T4 Sanofi)</span>
-                            <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">1 cx / mês</span>
-                        </div>
-                        <div class="text-[11px] text-emerald-900 mt-1">112mcg 30 comp • Restrito: Sanofi Aventis (Referência)</div>
-                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 27,80 (Drogasmil) / R$ 29,18 (Venancio)</div>
-                    </div>
-
-                    <!-- 8. Omega 3 Omegafor Plus Vitafor -->
-                    <div class="p-3 rounded-xl bg-purple-50/70 border border-purple-200">
-                        <div class="font-bold text-purple-950 flex items-center justify-between">
-                            <span>Ômega 3 (Omegafor Plus Vitafor)</span>
-                            <span class="bg-purple-200 text-purple-900 px-2 py-0.5 rounded text-[10px] font-bold">1 fr / mês</span>
-                        </div>
-                        <div class="text-[11px] text-purple-900 mt-1">Exclusivo: Omegafor Plus 60 cáps • 2 comp/dia (60 cáps/mês)</div>
-                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 89,90 (Venancio - Vitafor)</div>
-                    </div>
-
-                    <!-- 9. Vitamina D 7000 -->
-                    <div class="p-3 rounded-xl bg-amber-50/60 border border-amber-200">
-                        <div class="font-bold text-slate-900 flex items-center justify-between">
-                            <span>Vitamina D 7000 UI</span>
-                            <span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">1 cx / mês</span>
-                        </div>
-                        <div class="text-[11px] text-slate-500 mt-1">4 comp • Posologia: 1 comprimido por semana (4x/mês)</div>
-                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 23,90 (Venancio - Sanofi/EMS)</div>
-                    </div>
-
-                    <!-- 10. Desodorante Dove Invisible Care -->
-                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                        <div class="font-bold text-slate-900 flex items-center justify-between">
-                            <span>Desodorante Dove Invisible Care</span>
-                            <span class="bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded text-[10px]">1 un / mês</span>
-                        </div>
-                        <div class="text-[11px] text-slate-500 mt-1">Aerosol 150ml • Antimanchas brancas e amarelas • Unilever</div>
-                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 17,99 (Drogasmil) / R$ 18,90 (Venancio)</div>
-                    </div>
-
-                    <!-- 11. Shampoo Elseve Collagen Lifter -->
-                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                        <div class="font-bold text-slate-900 flex items-center justify-between">
-                            <span>Shampoo Elseve Collagen Lifter</span>
-                            <span class="bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded text-[10px]">1 un / mês</span>
-                        </div>
-                        <div class="text-[11px] text-slate-500 mt-1">Frasco 400ml • Encorpador e volumizador capilar • L'Oréal</div>
-                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 27,90 (Venancio - L'Oréal Paris)</div>
-                    </div>
-
-                    <!-- 12. Condicionador Elseve Collagen Lifter -->
-                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                        <div class="font-bold text-slate-900 flex items-center justify-between">
-                            <span>Condicionador Elseve Collagen Lifter</span>
-                            <span class="bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded text-[10px]">1 un / mês</span>
-                        </div>
-                        <div class="text-[11px] text-slate-500 mt-1">Frasco 400ml • Encorpador capilar • L'Oréal Paris</div>
-                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 29,90 (Venancio - L'Oréal Paris)</div>
-                    </div>
-
-                    <!-- 13. Protetor Solar Isdin Fusion Water -->
-                    <div class="p-3 rounded-xl bg-rose-50/60 border border-rose-200">
-                        <div class="font-bold text-slate-900 flex items-center justify-between">
-                            <span>Protetor Isdin Fusion Water (Clara)</span>
-                            <span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded text-[10px] font-bold">1 un / mês</span>
-                        </div>
-                        <div class="text-[11px] text-slate-600 mt-1">FPS 60 50ml • Cor Clara • Textura ultraleve base aquosa • Isdin</div>
-                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 94,90 (Venancio / Raia)</div>
-                    </div>
-
-                    <!-- 14. Protetor Solar Episol Color Tom 2 Claro -->
-                    <div class="p-3 rounded-xl bg-rose-50/60 border border-rose-200">
-                        <div class="font-bold text-slate-900 flex items-center justify-between">
-                            <span>Episol Color Tom 2 Claro</span>
-                            <span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded text-[10px] font-bold">1 un / mês</span>
-                        </div>
-                        <div class="text-[11px] text-slate-600 mt-1">FPS 70 40g • Tom 2 Claro • Efeito matte antioleosidade • Mantecorp</div>
-                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 84,90 (Venancio)</div>
-                    </div>
-
-                    <!-- 15. Shampoo Fortalecedor Pielus Forte -->
-                    <div class="p-3 rounded-xl bg-indigo-50/60 border border-indigo-200">
-                        <div class="font-bold text-slate-900 flex items-center justify-between">
-                            <span>Shampoo Pielus Forte</span>
-                            <span class="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded text-[10px] font-bold">1 un / mês</span>
-                        </div>
-                        <div class="text-[11px] text-slate-600 mt-1">400ml • Biotina + Complexo Antiqueda H-Reverse • Mantecorp</div>
-                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 114,90 (Venancio)</div>
-                    </div>
-
-                    <!-- 16. Solução Capilar Pielus Forte -->
-                    <div class="p-3 rounded-xl bg-indigo-50/60 border border-indigo-200">
-                        <div class="font-bold text-slate-900 flex items-center justify-between">
-                            <span>Solução Capilar Pielus Forte</span>
-                            <span class="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded text-[10px] font-bold">1 un / mês</span>
-                        </div>
-                        <div class="text-[11px] text-slate-600 mt-1">120ml • Loção Antiqueda com aplicador • Mantecorp</div>
-                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 139,90 (Venancio)</div>
-                    </div>
-
-                    <!-- 17. Darrow Actine Renov -->
-                    <div class="p-3 rounded-xl bg-teal-50/60 border border-teal-200">
-                        <div class="font-bold text-slate-900 flex items-center justify-between">
-                            <span>Darrow Actine Renov</span>
-                            <span class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded text-[10px] font-bold">1 un / mês</span>
-                        </div>
-                        <div class="text-[11px] text-slate-600 mt-1">30ml • Sérum Renovador Facial Antiacne • Darrow</div>
-                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 79,90 (Venancio)</div>
-                    </div>
-
-                    <!-- 18. Cera Pink Granado -->
-                    <div class="p-3 rounded-xl bg-pink-50/70 border border-pink-200">
-                        <div class="font-bold text-slate-900 flex items-center justify-between">
-                            <span>Cera Pink Unhas Granado</span>
-                            <span class="bg-pink-100 text-pink-800 px-2 py-0.5 rounded text-[10px] font-bold">1 un / mês</span>
-                        </div>
-                        <div class="text-[11px] text-slate-600 mt-1">7g • Nutritiva para Unhas e Cutículas • Granado Pink</div>
-                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 34,90 (Venancio)</div>
-                    </div>
-
-                    <!-- 19. NIVEA Creme Hidratante Lata -->
-                    <div class="p-3 rounded-xl bg-blue-50/60 border border-blue-200">
-                        <div class="font-bold text-slate-900 flex items-center justify-between">
-                            <span>Nivea Creme Lata Azul</span>
-                            <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-[10px] font-bold">1 un / mês</span>
-                        </div>
-                        <div class="text-[11px] text-slate-600 mt-1">56g • Hidratação Intensiva Tradicional • Nivea</div>
-                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 21,90 (Venancio)</div>
-                    </div>
-
-                    <!-- 20. Gel De Limpeza Facial Effaclar Concentrado -->
-                    <div class="p-3 rounded-xl bg-sky-50/60 border border-sky-200">
-                        <div class="font-bold text-slate-900 flex items-center justify-between">
-                            <span>Effaclar Gel Concentrado</span>
-                            <span class="bg-sky-100 text-sky-800 px-2 py-0.5 rounded text-[10px] font-bold">1 un / mês</span>
-                        </div>
-                        <div class="text-[11px] text-slate-600 mt-1">150g • Ácido Salicílico + Zinco • La Roche-Posay</div>
-                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 54,90 (Venancio)</div>
-                    </div>
-
-                    <!-- 21. Sabonete Líquido Íntimo -->
-                    <div class="p-3 rounded-xl bg-rose-50/60 border border-rose-200">
-                        <div class="font-bold text-slate-900 flex items-center justify-between">
-                            <span>Sabonete Líquido Íntimo</span>
-                            <span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded text-[10px] font-bold">1 un / mês</span>
-                        </div>
-                        <div class="text-[11px] text-slate-600 mt-1">200ml • Marcas permitidas: Nivea, Dermacyd, Intimus</div>
-                        <div class="text-[11px] font-semibold text-emerald-700 mt-1">Melhor: R$ 19,90 (Venancio - Dermacyd/Nivea)</div>
-                    </div>
                 </div>
             </div>
         </section>
@@ -853,10 +620,9 @@
                         <!-- URLs Opcionais -->
                         <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2.5">
                             <span class="block text-[11px] font-bold text-slate-700">Links Diretos das Farmácias (Opcional - para busca ultra-rápida):</span>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                                 <input type="url" id="cadUrlPacheco" placeholder="Link Drogarias Pacheco" class="border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white text-[11px]">
                                 <input type="url" id="cadUrlVenancio" placeholder="Link Drogaria Venancio" class="border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white text-[11px]">
-                                <input type="url" id="cadUrlDrogasmil" placeholder="Link Drogasmil" class="border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white text-[11px]">
                                 <input type="url" id="cadUrlRaia" placeholder="Link Droga Raia" class="border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white text-[11px]">
                             </div>
                         </div>
@@ -990,10 +756,9 @@
                     <!-- Links de Farmácias -->
                     <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
                         <span class="block text-[11px] font-bold text-slate-700">Links de Busca Rápida:</span>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                             <input type="url" id="editUrlPacheco" placeholder="Link Pacheco" class="border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white text-[11px]">
                             <input type="url" id="editUrlVenancio" placeholder="Link Venancio" class="border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white text-[11px]">
-                            <input type="url" id="editUrlDrogasmil" placeholder="Link Drogasmil" class="border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white text-[11px]">
                             <input type="url" id="editUrlRaia" placeholder="Link Droga Raia" class="border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white text-[11px]">
                         </div>
                     </div>
@@ -1235,7 +1000,6 @@
                                 <option value="Drogaria Venancio">Drogaria Venancio</option>
                                 <option value="Drogarias Pacheco">Drogarias Pacheco</option>
                                 <option value="Droga Raia">Droga Raia</option>
-                                <option value="Drogasmil">Drogasmil</option>
                             </select>
                         </div>
                         <div>
@@ -1523,8 +1287,7 @@
             "Drogaria Venancio": "Rua Conde de Bonfim, 532 — Tijuca",
             "Drogarias Pacheco": "Rua Conde de Bonfim, 580 — Tijuca",
             "Droga Raia": "Rua Conde de Bonfim, 536 — Tijuca",
-            "Drogasmil": "Praça Saenz Peña, 29 — Tijuca"
-        };
+                    };
 
         function showToast(msg, icon = "fa-check-circle text-emerald-400") {
             const toast = document.getElementById("toast");
@@ -2139,8 +1902,7 @@
                                     ean: loc.ean || "",
                                     url_pacheco: loc.url_pacheco || "",
                                     url_venancio: loc.url_venancio || "",
-                                    url_drogasmil: loc.url_drogasmil || "",
-                                    url_raia: loc.url_raia || ""
+                                                                        url_raia: loc.url_raia || ""
                                 })
                             });
                         } catch (e) {
@@ -2282,8 +2044,7 @@
             document.getElementById("editEan").value = p.ean || "";
             document.getElementById("editUrlPacheco").value = p.url_pacheco || "";
             document.getElementById("editUrlVenancio").value = p.url_venancio || "";
-            document.getElementById("editUrlDrogasmil").value = p.url_drogasmil || "";
-            document.getElementById("editUrlRaia").value = p.url_raia || "";
+                        document.getElementById("editUrlRaia").value = p.url_raia || "";
 
             const modal = document.getElementById("modalEditarProduto");
             if (modal) modal.classList.remove("hidden");
@@ -2313,8 +2074,7 @@
                 ean: document.getElementById("editEan").value.trim(),
                 url_pacheco: document.getElementById("editUrlPacheco").value.trim(),
                 url_venancio: document.getElementById("editUrlVenancio").value.trim(),
-                url_drogasmil: document.getElementById("editUrlDrogasmil").value.trim(),
-                url_raia: document.getElementById("editUrlRaia").value.trim()
+                                url_raia: document.getElementById("editUrlRaia").value.trim()
             };
 
             try {
@@ -2369,8 +2129,7 @@
                 ean: document.getElementById("cadEan").value.trim(),
                 url_pacheco: document.getElementById("cadUrlPacheco").value.trim(),
                 url_venancio: document.getElementById("cadUrlVenancio").value.trim(),
-                url_drogasmil: document.getElementById("cadUrlDrogasmil").value.trim(),
-                url_raia: document.getElementById("cadUrlRaia").value.trim()
+                                url_raia: document.getElementById("cadUrlRaia").value.trim()
             };
 
             try {
@@ -2894,8 +2653,7 @@
             let totalOtimizado = 0;
             let totalVenancio = 0;
             let totalPacheco = 0;
-            let totalDrogasmil = 0;
-            let totalRaia = 0;
+                        let totalRaia = 0;
             let countSelecionados = 0;
 
             cestaCache.itens.forEach(it => {
@@ -2912,13 +2670,11 @@
                     // Preços por farmácia individual
                     const pV = it.precos_farmacias ? it.precos_farmacias["Drogaria Venancio"] : null;
                     const pP = it.precos_farmacias ? it.precos_farmacias["Drogarias Pacheco"] : null;
-                    const pM = it.precos_farmacias ? it.precos_farmacias["Drogasmil"] : null;
-                    const pR = it.precos_farmacias ? it.precos_farmacias["Droga Raia"] : null;
+                                        const pR = it.precos_farmacias ? it.precos_farmacias["Droga Raia"] : null;
 
                     if (pV) totalVenancio += pV;
                     if (pP) totalPacheco += pP;
-                    if (pM) totalDrogasmil += pM;
-                    if (pR) totalRaia += pR;
+                                        if (pR) totalRaia += pR;
                 }
             });
 
@@ -2938,20 +2694,17 @@
             document.getElementById("cestaTotalOtimizado").innerText = formatarMoeda(totalOtimizado);
             document.getElementById("cestaTotalVenancio").innerText = totalVenancio > 0 ? formatarMoeda(totalVenancio) : (countSelecionados === 0 ? "R$ 0,00" : "—");
             document.getElementById("cestaTotalPacheco").innerText = totalPacheco > 0 ? formatarMoeda(totalPacheco) : (countSelecionados === 0 ? "R$ 0,00" : "—");
-            document.getElementById("cestaTotalDrogasmil").innerText = totalDrogasmil > 0 ? formatarMoeda(totalDrogasmil) : (countSelecionados === 0 ? "R$ 0,00" : "—");
-            document.getElementById("cestaTotalRaia").innerText = totalRaia > 0 ? formatarMoeda(totalRaia) : (countSelecionados === 0 ? "R$ 0,00" : "—");
+                        document.getElementById("cestaTotalRaia").innerText = totalRaia > 0 ? formatarMoeda(totalRaia) : (countSelecionados === 0 ? "R$ 0,00" : "—");
 
             // Atualizar Rodapé da Tabela (tfoot)
             const tfV = document.getElementById("tfootTotalVenancio");
             const tfP = document.getElementById("tfootTotalPacheco");
-            const tfM = document.getElementById("tfootTotalDrogasmil");
-            const tfR = document.getElementById("tfootTotalRaia");
+                        const tfR = document.getElementById("tfootTotalRaia");
             const tfO = document.getElementById("tfootTotalOtimizado");
 
             if (tfV) tfV.innerText = formatarMoeda(totalVenancio);
             if (tfP) tfP.innerText = formatarMoeda(totalPacheco);
-            if (tfM) tfM.innerText = formatarMoeda(totalDrogasmil);
-            if (tfR) tfR.innerText = formatarMoeda(totalRaia);
+                        if (tfR) tfR.innerText = formatarMoeda(totalRaia);
             if (tfO) tfO.innerText = formatarMoeda(totalOtimizado);
         }
 
@@ -2978,18 +2731,15 @@
 
                 const precoV = it.precos_farmacias ? it.precos_farmacias["Drogaria Venancio"] : null;
                 const precoP = it.precos_farmacias ? it.precos_farmacias["Drogarias Pacheco"] : null;
-                const precoM = it.precos_farmacias ? it.precos_farmacias["Drogasmil"] : null;
-                const precoR = it.precos_farmacias ? it.precos_farmacias["Droga Raia"] : null;
+                                const precoR = it.precos_farmacias ? it.precos_farmacias["Droga Raia"] : null;
 
                 const detV = it.detalhes_farmacias ? it.detalhes_farmacias["Drogaria Venancio"] : null;
                 const detP = it.detalhes_farmacias ? it.detalhes_farmacias["Drogarias Pacheco"] : null;
-                const detM = it.detalhes_farmacias ? it.detalhes_farmacias["Drogasmil"] : null;
-                const detR = it.detalhes_farmacias ? it.detalhes_farmacias["Droga Raia"] : null;
+                                const detR = it.detalhes_farmacias ? it.detalhes_farmacias["Droga Raia"] : null;
 
                 const isVenWinner = it.melhor_farmacia === "Drogaria Venancio";
                 const isPachWinner = it.melhor_farmacia === "Drogarias Pacheco";
-                const isMilWinner = it.melhor_farmacia === "Drogasmil";
-                const isRaiaWinner = it.melhor_farmacia === "Droga Raia";
+                                const isRaiaWinner = it.melhor_farmacia === "Droga Raia";
 
                 const labV = formatarLab(detV ? detV.laboratorio : '', it.fabricante);
                 const tdVen = precoV ? `
@@ -3005,13 +2755,7 @@
                     ${labP ? `<div class="text-[9px] text-slate-500 font-medium">${labP}</div>` : ''}
                 ` : `<span class="text-slate-400">—</span>`;
 
-                const labM = formatarLab(detM ? detM.laboratorio : '', it.fabricante);
-                const tdMil = precoM ? `
-                    <div class="font-bold ${isMilWinner ? 'text-emerald-700' : 'text-slate-800'}">${formatarMoeda(precoM)}</div>
-                    ${it.quantidade_mensal > 1 ? `<div class="text-[10px] text-slate-400">(${it.quantidade_mensal}x ${formatarMoeda(detM ? detM.unitario : precoM / it.quantidade_mensal)})</div>` : ''}
-                    ${labM ? `<div class="text-[9px] text-slate-500 font-medium">${labM}</div>` : ''}
-                ` : `<span class="text-slate-400">—</span>`;
-
+                
                 let tdRaia = `<span class="text-slate-400">—</span>`;
                 if (precoR) {
                     const raiaExp = detR && detR.expirado_3dias;
@@ -3053,10 +2797,7 @@
                     <td class="px-3.5 py-3 text-right border-b border-slate-100 ${isPachWinner ? 'bg-emerald-50/70 border-l border-r border-emerald-100' : ''}">
                         ${tdPach}
                     </td>
-                    <td class="px-3.5 py-3 text-right border-b border-slate-100 ${isMilWinner ? 'bg-emerald-50/70 border-l border-r border-emerald-100' : ''}">
-                        ${tdMil}
-                    </td>
-                    <td class="px-3.5 py-3 text-right border-b border-slate-100 ${isRaiaWinner ? 'bg-emerald-50/70 border-l border-r border-emerald-100' : ''}">
+                                        <td class="px-3.5 py-3 text-right border-b border-slate-100 ${isRaiaWinner ? 'bg-emerald-50/70 border-l border-r border-emerald-100' : ''}">
                         ${tdRaia}
                     </td>
                     <td class="px-3.5 py-3 text-center border-b border-slate-100">

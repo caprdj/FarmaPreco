@@ -544,8 +544,7 @@ def consultar_drogasmil(url: Optional[str] = None, produto: Optional[Dict[str, A
 def consultar_todas_automaticas(produto: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     return {
         "pacheco": consultar_pacheco(produto=produto),
-        "venancio": consultar_venancio(produto=produto),
-        "drogasmil": consultar_drogasmil(produto=produto)
+        "venancio": consultar_venancio(produto=produto)
     }
 
 def consultar_precos_laboratorios(principio_ativo: str, dosagem: str = "", apresentacao: str = "") -> Dict[str, Any]:
