@@ -1069,59 +1069,53 @@
             </div>
 
             <div class="mt-4 space-y-4">
-                <!-- Explicação do Aviso do Chrome -->
-                <div class="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 flex items-start gap-2.5">
-                    <i class="fa-solid fa-shield-halved text-amber-600 text-base flex-shrink-0 mt-0.5"></i>
-                    <div>
-                        <strong class="block font-bold">Por que o Chrome mostrou "Não é possível instalar"?</strong>
-                        <p class="text-[11px] text-amber-800 mt-0.5">
-                            O Google Chrome no Android exige <strong>conexão segura HTTPS</strong> para transformar um site em aplicativo instalado (WebAPK). No endereço HTTP local (192.168...), ele bloqueia "Instalar", mas libera <strong>"Criar atalho"</strong>.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- OPÇÃO 1: LINK SEGURO HTTPS (INSTALAÇÃO DIRETA COMO APP) -->
+                <!-- LINK SEGURO HTTPS PERMANENTE -->
                 <div class="bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-300 rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4">
                     <div class="bg-white p-2 rounded-xl shadow-sm border border-emerald-200 flex-shrink-0 text-center">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https://farmapreco.onrender.com" alt="QR Code HTTPS FarmaPreço" class="w-28 h-28 rounded-lg mx-auto" onerror="this.src='/static/icons/icon-192.png'">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https://farmapreco.onrender.com" alt="QR Code FarmaPreço" class="w-28 h-28 rounded-lg mx-auto" onerror="this.src='/static/icons/icon-192.png'">
                         <span class="text-[9px] text-emerald-700 block mt-1 font-bold">Aponte a câmera</span>
                     </div>
-                    <div class="space-y-1.5 text-center sm:text-left flex-1 min-w-0">
+                    <div class="space-y-2 text-center sm:text-left flex-1 min-w-0">
                         <span class="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-200/80 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
-                            <i class="fa-solid fa-lock text-[9px]"></i> Link Seguro HTTPS (Recomendado)
+                            <i class="fa-solid fa-cloud text-[9px]"></i> Online 24/7 • Qualquer Lugar
                         </span>
-                        <div class="text-xs text-slate-800 font-bold">Acesse este link no celular para instalar como App:</div>
-                        <div class="bg-white px-3 py-1.5 rounded-lg border border-emerald-300 font-mono text-[11px] font-bold text-emerald-900 select-all flex items-center justify-between gap-2 overflow-hidden">
+                        <div class="text-xs text-slate-800 font-bold">Acesse no navegador do seu smartphone:</div>
+                        <div class="bg-white px-3 py-1.5 rounded-lg border border-emerald-300 font-mono text-[11px] font-bold text-emerald-900 select-all flex items-center justify-between gap-2 overflow-hidden shadow-xs">
                             <span class="truncate">https://farmapreco.onrender.com</span>
-                            <button onclick="navigator.clipboard.writeText('https://farmapreco.onrender.com'); showToast('Link copiado!', 'fa-copy text-emerald-400');" class="text-emerald-700 hover:text-emerald-900 text-xs flex-shrink-0" title="Copiar"><i class="fa-regular fa-copy"></i></button>
+                            <button onclick="copiarLinkApp()" class="text-emerald-700 hover:text-emerald-900 text-xs flex-shrink-0" title="Copiar"><i class="fa-regular fa-copy"></i></button>
                         </div>
                         <p class="text-[11px] text-emerald-800">
-                            ✓ Funciona no Wi-Fi e no 4G/5G.<br>
-                            ✓ Libera o botão <strong>"Instalar aplicativo"</strong> no Chrome!
+                            ✓ Funciona no 4G, 5G e Wi-Fi de qualquer lugar.<br>
+                            ✓ Não precisa do computador ligado!
                         </p>
                     </div>
                 </div>
 
-                <!-- OPÇÃO 2: SE PREFERIR FICAR NO IP LOCAL HTTP -->
-                <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-                    <div class="font-bold text-xs text-slate-900 flex items-center gap-2">
-                        <i class="fa-brands fa-android text-emerald-600 text-sm"></i>
-                        <span>No link atual (192.168.15.9): Como criar o ícone na tela inicial</span>
-                    </div>
-                    <p class="text-[11px] text-slate-600">
-                        Na janela que abriu no seu celular, toque na segunda opção: <strong>"Criar atalho"</strong> (ao lado do ícone do FarmaPreço). Ele adicionará o ícone do aplicativo na tela inicial do seu celular imediatamente!
-                    </p>
-                </div>
-
-                <!-- Instruções iPhone -->
+                <!-- Passo a Passo Android -->
                 <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
                     <div class="font-bold text-xs text-slate-900 flex items-center gap-2">
-                        <i class="fa-brands fa-apple text-slate-800 text-sm"></i>
+                        <i class="fa-brands fa-android text-emerald-600 text-base"></i>
+                        <span>No Android (Google Chrome):</span>
+                    </div>
+                    <ol class="text-[11px] text-slate-600 list-decimal list-inside space-y-1">
+                        <li>Abra <strong>https://farmapreco.onrender.com</strong> no Chrome.</li>
+                        <li>Toque no menu de <strong>3 pontinhos</strong> (canto superior direito).</li>
+                        <li>Toque em <strong>"Instalar aplicativo"</strong> (ou "Adicionar à tela inicial").</li>
+                        <li>Pronto! O app aparecerá na sua tela inicial e na galeria de apps.</li>
+                    </ol>
+                </div>
+
+                <!-- Passo a Passo iPhone -->
+                <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
+                    <div class="font-bold text-xs text-slate-900 flex items-center gap-2">
+                        <i class="fa-brands fa-apple text-slate-800 text-base"></i>
                         <span>No iPhone (Safari):</span>
                     </div>
-                    <p class="text-[11px] text-slate-600">
-                        Abra o link pelo Safari, toque no botão <strong>Compartilhar</strong> (ícone com seta para cima) e escolha <strong>"Adicionar à Tela de Início"</strong>.
-                    </p>
+                    <ol class="text-[11px] text-slate-600 list-decimal list-inside space-y-1">
+                        <li>Abra <strong>https://farmapreco.onrender.com</strong> no Safari.</li>
+                        <li>Toque no botão de <strong>Compartilhar</strong> (quadrado com seta para cima).</li>
+                        <li>Selecione <strong>"Adicionar à Tela de Início"</strong> e confirme.</li>
+                    </ol>
                 </div>
             </div>
 
@@ -1224,8 +1218,11 @@
         }
 
         function copiarLinkApp() {
-            navigator.clipboard.writeText("http://192.168.15.9:8000");
-            showToast("Link copiado para a área de transferência!", "fa-circle-check text-cyan-400");
+            const url = window.location.origin.includes("farmapreco.onrender.com") 
+                ? "https://farmapreco.onrender.com" 
+                : (window.location.origin.startsWith("http") ? window.location.origin : "https://farmapreco.onrender.com");
+            navigator.clipboard.writeText(url);
+            showToast("Link copiado: " + url, "fa-circle-check text-cyan-400");
         }
 
         function trocarAba(aba) {
