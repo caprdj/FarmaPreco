@@ -660,9 +660,8 @@
                         </div>
                     </div>
 
-                    <div class="pt-3 border-t border-slate-100 mt-3 flex justify-between items-center text-xs">
-                        <button type="button" onclick="restaurarCatalogoPadrao()" class="text-[11px] text-slate-500 hover:text-rose-600 font-semibold flex items-center gap-1.5 transition" title="Redefine as personalizações deste aparelho para o catálogo padrão original">
-                            <i class="fa-solid fa-rotate-left"></i> Restaurar Catálogo Padrão
+                        <button type="button" onclick="carregarListaMedicamentos()" class="text-[11px] text-slate-500 hover:text-cyan-600 font-semibold flex items-center gap-1.5 transition" title="Recarregar catálogo de produtos">
+                            <i class="fa-solid fa-arrows-rotate"></i> Atualizar Lista
                         </button>
                     </div>
                 </div>
@@ -1729,124 +1728,16 @@
         }
 
         // ==========================================
-        // ARMAZENAMENTO LOCAL (MODO MULTI-APARELHO INDEPENDENTE)
+        // CATÁLOGO DE MEDICAMENTOS E PRODUTOS (VERSÃO PESSOAL)
         // ==========================================
-        function getLocalCustomEdits() {
-            try {
-                return JSON.parse(localStorage.getItem("farmapreco_custom_produtos") || "{}");
-            } catch (e) {
-                return {};
-            }
-        }
-
-        function setLocalCustomEdits(edits) {
-            try {
-                localStorage.setItem("farmapreco_custom_produtos", JSON.stringify(edits));
-            } catch (e) {
-                console.warn("Erro ao salvar edições locais:", e);
-            }
-        }
-
-        function getLocalNovosProdutos() {
-            try {
-                return JSON.parse(localStorage.getItem("farmapreco_novos_produtos") || "[]");
-            } catch (e) {
-                return [];
-            }
-        }
-
-        function setLocalNovosProdutos(prods) {
-            try {
-                localStorage.setItem("farmapreco_novos_produtos", JSON.stringify(prods));
-            } catch (e) {
-                console.warn("Erro ao salvar novos produtos locais:", e);
-            }
-        }
-
-        function getLocalExcluidos() {
-            try {
-                return new Set(JSON.parse(localStorage.getItem("farmapreco_excluidos_produtos") || "[]"));
-            } catch (e) {
-                return new Set();
-            }
-        }
-
-        function setLocalExcluidos(exclSet) {
-            try {
-                localStorage.setItem("farmapreco_excluidos_produtos", JSON.stringify([...exclSet]));
-            } catch (e) {
-                console.warn("Erro ao salvar excluídos locais:", e);
-            }
-        }
-
-        function restaurarCatalogoPadrao() {
-            if (!confirm("Deseja redefinir as personalizações deste smartphone e restaurar o catálogo padrão original?")) return;
-            try {
-                localStorage.removeItem("farmapreco_custom_produtos");
-                localStorage.removeItem("farmapreco_novos_produtos");
-                localStorage.removeItem("farmapreco_excluidos_produtos");
-                showToast("Catálogo padrão restaurado com sucesso neste celular!", "fa-circle-check text-emerald-400");
-                carregarListaMedicamentos().then(() => {
-                    carregarCestaMensal();
-                    trocarMedicamento();
-                });
-            } catch (e) {
-                showToast("Erro ao restaurar catálogo: " + e.message, "fa-circle-xmark text-rose-400");
-            }
-        }
 
         async function carregarListaMedicamentos() {
             const container = document.getElementById("listaMedicamentosCadastrados");
             try {
-                // Migração transparente de produtos LOC_ salvos anteriormente apenas no celular
-                const locaisPendentes = getLocalNovosProdutos();
-                if (locaisPendentes && locaisPendentes.length > 0) {
-                    for (const loc of locaisPendentes) {
-                        try {
-                            await fetch("/api/produtos", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                    nome: loc.nome,
-                                    principio_ativo: loc.principio_ativo || "",
-                                    dosagem: loc.dosagem || "",
-                                    apresentacao: loc.apresentacao || "",
-                                    fabricante: loc.fabricante || "",
-                                    categoria: loc.categoria || "Outros",
-                                    quantidade_mensal: loc.quantidade_mensal || 1,
-                                    ean: loc.ean || "",
-                                    url_pacheco: loc.url_pacheco || "",
-                                    url_venancio: loc.url_venancio || "",
-                                                                        url_raia: loc.url_raia || ""
-                                })
-                            });
-                        } catch (e) {
-                            console.warn("Erro ao migrar produto local para servidor:", e);
-                        }
-                    }
-                    localStorage.removeItem("farmapreco_novos_produtos");
-                }
-
                 const res = await fetch("/api/produtos");
                 const baseProdutos = await res.json();
 
-                const customEdits = getLocalCustomEdits();
-                const excluidos = getLocalExcluidos();
-
-                let lista = [];
-
-                // 1. Processar itens base do catálogo do servidor
-                baseProdutos.forEach(bp => {
-                    if (excluidos.has(bp.produto_id)) return;
-                    const custom = customEdits[bp.produto_id];
-                    if (custom && custom.quantidade_mensal) {
-                        lista.push({ ...bp, quantidade_mensal: custom.quantidade_mensal, isPersonalizado: true });
-                    } else {
-                        lista.push({ ...bp });
-                    }
-                });
-
-                produtosCache = lista;
+                produtosCache = baseProdutos || [];
 
                 // Ordenar estritamente em ordem alfabética (A-Z) pelo nome
                 produtosCache.sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR", { sensitivity: "base" }));
@@ -1886,20 +1777,12 @@
                     const card = document.createElement("div");
                     card.className = "p-3 bg-slate-50 hover:bg-slate-100/90 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 transition";
 
-                    let tagOrigem = "";
-                    if (p.isPersonalizado) {
-                        tagOrigem = `<span class="bg-amber-100 text-amber-900 border border-amber-300 text-[9px] font-bold px-1.5 py-0.2 rounded inline-flex items-center gap-1"><i class="fa-solid fa-mobile-screen"></i> Editado neste celular</span>`;
-                    } else if (p.isExclusivoLocal) {
-                        tagOrigem = `<span class="bg-emerald-100 text-emerald-900 border border-emerald-300 text-[9px] font-bold px-1.5 py-0.2 rounded inline-flex items-center gap-1"><i class="fa-solid fa-plus"></i> Novo neste celular</span>`;
-                    }
-
                     card.innerHTML = `
                         <div class="space-y-0.5">
                             <div class="font-bold text-xs text-slate-900 flex items-center gap-1.5 flex-wrap">
                                 <span>${p.nome}</span>
                                 <span class="text-cyan-800 font-extrabold bg-cyan-100/80 px-1.5 py-0.2 rounded text-[10px]">${p.dosagem || ''}</span>
                                 <span class="text-slate-500 text-[10px]">(${p.quantidade_mensal || 1}x/mês)</span>
-                                ${tagOrigem}
                             </div>
                             <div class="text-[11px] text-slate-500">
                                 <span class="font-semibold text-slate-700">${p.fabricante || 'Geral'}</span> • 
@@ -1911,10 +1794,10 @@
                             <button onclick="selecionarMedicamento('${p.produto_id}')" class="text-[11px] bg-cyan-600 hover:bg-cyan-700 text-white font-bold px-2.5 py-1 rounded-lg shadow-xs flex items-center gap-1">
                                 <i class="fa-solid fa-eye text-[10px]"></i> Ver
                             </button>
-                            <button onclick="abrirModalEdicao('${p.produto_id}')" class="text-[11px] bg-amber-500 hover:bg-amber-600 text-white font-bold px-2.5 py-1 rounded-lg shadow-xs flex items-center gap-1" title="Editar dosagem, quantidade e dados neste aparelho">
+                            <button onclick="abrirModalEdicao('${p.produto_id}')" class="text-[11px] bg-amber-500 hover:bg-amber-600 text-white font-bold px-2.5 py-1 rounded-lg shadow-xs flex items-center gap-1" title="Editar informações do produto">
                                 <i class="fa-solid fa-pen-to-square text-[10px]"></i> Editar
                             </button>
-                            <button onclick="excluirMedicamento('${p.produto_id}')" class="text-rose-500 hover:text-rose-700 p-1 rounded transition" title="Remover da lista deste aparelho"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                            <button onclick="excluirMedicamento('${p.produto_id}')" class="text-rose-500 hover:text-rose-700 p-1 rounded transition" title="Remover do catálogo"><i class="fa-solid fa-trash-can text-xs"></i></button>
                         </div>
                     `;
                     container.appendChild(card);
@@ -2016,12 +1899,6 @@
                 const data = await res.json();
 
                 if (data.sucesso) {
-                    // Purge stale local override so server's new category and fields take effect immediately
-                    const customEdits = getLocalCustomEdits();
-                    if (customEdits[prodId]) {
-                        delete customEdits[prodId];
-                        setLocalCustomEdits(customEdits);
-                    }
                     showToast("Produto atualizado e cotações renovadas com sucesso!", "fa-circle-check text-emerald-400");
                     fecharModalEdicao();
                     await carregarListaMedicamentos();
@@ -2844,72 +2721,12 @@
                 const res = await fetch("/api/cesta-mensal");
                 const data = await res.json();
 
-                const customEdits = getLocalCustomEdits();
-                const excluidos = getLocalExcluidos();
-
-                let itensFiltrados = [];
-
-                if (data.sucesso && data.itens) {
-                    data.itens.forEach(it => {
-                        if (excluidos.has(it.produto_id)) return;
-
-                        let itemClone = { ...it };
-                        const custom = customEdits[it.produto_id];
-
-                        if (custom) {
-                            if (custom.nome) itemClone.nome = custom.nome;
-                            if (custom.dosagem) itemClone.dosagem = custom.dosagem;
-                            if (custom.apresentacao) itemClone.apresentacao = custom.apresentacao;
-                            if (custom.fabricante) itemClone.fabricante = custom.fabricante;
-                            if (custom.categoria) itemClone.categoria = custom.categoria;
-
-                            // Se a quantidade mensal foi alterada neste smartphone:
-                            if (custom.quantidade_mensal && custom.quantidade_mensal !== it.quantidade_mensal) {
-                                const antigaQtd = it.quantidade_mensal || 1;
-                                const novaQtd = custom.quantidade_mensal;
-                                itemClone.quantidade_mensal = novaQtd;
-
-                                const novosPrecos = {};
-                                const novosDetalhes = {};
-                                let novoMelhorPreco = null;
-                                let novaMelhorFarmacia = "Pendente";
-
-                                for (const [drog, precoAntigo] of Object.entries(it.precos_farmacias || {})) {
-                                    const detAntigo = (it.detalhes_farmacias && it.detalhes_farmacias[drog]) || {};
-                                    const unitario = detAntigo.unitario || (precoAntigo / antigaQtd);
-                                    const novoTotal = Math.round(unitario * novaQtd * 100) / 100;
-                                    novosPrecos[drog] = novoTotal;
-                                    novosDetalhes[drog] = {
-                                        ...detAntigo,
-                                        total: novoTotal,
-                                        unitario: unitario
-                                    };
-
-                                    if (novoMelhorPreco === null || novoTotal < novoMelhorPreco) {
-                                        novoMelhorPreco = novoTotal;
-                                        novaMelhorFarmacia = drog;
-                                    }
-                                }
-
-                                itemClone.precos_farmacias = novosPrecos;
-                                itemClone.detalhes_farmacias = novosDetalhes;
-                                itemClone.melhor_preco = novoMelhorPreco || 0;
-                                itemClone.melhor_farmacia = novaMelhorFarmacia;
-                            }
-                        }
-
-                        itensFiltrados.push(itemClone);
-                    });
-                }
-
-                data.itens = itensFiltrados;
-                data.total_medicamentos = itensFiltrados.length;
-                cestaCache = data;
-
-                if (!cestaCache.itens || cestaCache.itens.length === 0) {
+                if (!data.sucesso || !data.itens || data.itens.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-slate-500">Nenhum item na lista de compras.</td></tr>`;
                     return;
                 }
+
+                cestaCache = data;
 
                 // Carregar itens selecionados salvos ou marcar todos por padrão
                 try {
