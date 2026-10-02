@@ -24,9 +24,11 @@ def get_sp_time() -> str:
         return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 def contem_palavra_exata(palavra: str, texto: str) -> bool:
-    """Verifica se a palavra existe como termo inteiro no texto, evitando falsos positivos como 'bup' em 'ibupril'."""
-    padrao = r'(?:^|[^\w])' + re.escape(palavra) + r'(?:$|[^\w])'
-    return bool(re.search(padrao, texto, re.IGNORECASE))
+    """Verifica se a palavra existe como termo inteiro no texto, normalizando variações de catálogo."""
+    p_norm = palavra.lower().replace("quetiapiana", "quetiapina")
+    t_norm = texto.lower().replace("quetiapiana", "quetiapina")
+    padrao = r'(?:^|[^\w])' + re.escape(p_norm) + r'(?:$|[^\w])'
+    return bool(re.search(padrao, t_norm, re.IGNORECASE))
 
 def extrair_volume_ou_qtd(texto: str) -> set:
     """Extrai quantidade de comprimidos/cápsulas ou volume em ml/g para evitar misturar embalagens de 30 e 60."""
@@ -87,9 +89,10 @@ def extrair_tokens_obrigatorios(nome_buscado: str, principio_ativo: str = "", fa
             conjuntos_opcoes.append(set(distintivas))
             
     if fabricante and str(fabricante).lower() not in ("generico", "genérico", "similar", "marca", "referencia", "referência", "outros", "não informado"):
-        fabs = [w for w in re.findall(r"[a-záéíóúãõâêîôûç]+", str(fabricante).lower()) if len(w) >= 3 and w not in TERMOS_GENERICOS]
-        if fabs:
-            conjuntos_opcoes.append(set(fabs))
+        for fab_part in re.split(r"[/,;()]+", str(fabricante)):
+            fabs = [w for w in re.findall(r"[a-záéíóúãõâêîôûç]+", fab_part.lower()) if len(w) >= 3 and w not in TERMOS_GENERICOS]
+            if fabs:
+                conjuntos_opcoes.append(set(fabs))
             
     return conjuntos_opcoes
 
